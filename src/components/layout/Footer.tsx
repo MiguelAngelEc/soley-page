@@ -1,93 +1,156 @@
-import { Container } from '@/components/ui';
-import Image from 'next/image';
+"use client";
+
+import Image from "next/image";
+import { WhatsAppIcon, FbIcon, IgIcon, PinIcon, PhoneIcon, MailIcon } from "@/components/shared/Icons";
+
+const productLinks: [string, string][] = [
+  ["Detergente Líquido", "#productos"],
+  ["Cloro al 5%", "#productos"],
+  ["Desinfectante Multiusos", "#productos"],
+  ["Jabón Líquido", "#productos"],
+  ["Alcohol Antiséptico", "#productos"],
+  ["Gel Antibacterial", "#productos"],
+];
+
+const companyLinks: [string, string][] = [
+  ["Por qué Soley", "#por-que"],
+  ["Para empresas", "#empresas"],
+  ["Cotización mayoreo", "#contacto"],
+  ["Etiqueta privada", "#contacto"],
+  ["Preguntas frecuentes", "#"],
+];
 
 export function Footer() {
   return (
-    <footer className="bg-primary text-secondary">
-      <Container className="py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Logo y descripción */}
-          <div className="space-y-2">
-            <div className="flex items-center space-x-2">
-              <Image
-                src="/Logo.png"
-                alt="Soley Logo"
-                width={100}
-                height={100}
-                className="rounded-full"
-              />
+    <footer style={{
+      background: "var(--soley-blue-ink)", color: "white",
+      position: "relative", overflow: "hidden",
+    }}>
+      <div style={{
+        position: "absolute", top: -80, left: -60, width: 320, height: 320,
+        backgroundImage: "radial-gradient(white 1.5px, transparent 2px)",
+        backgroundSize: "16px 16px", opacity: 0.06,
+      }} />
+
+      <div className="container-x" style={{ padding: "72px 24px 32px", position: "relative" }}>
+        <div className="footer-grid">
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+              <Image src="/LogoSF.png" alt="Soley" width={56} height={56} style={{ borderRadius: 10, background: "white", padding: 4 }} />
+              <div>
+                <div style={{ fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em" }}>SOLEY</div>
+                <div style={{ fontSize: 10.5, fontWeight: 700, color: "#FFA8B0", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+                  Amenities & Limpieza
+                </div>
+              </div>
             </div>
-            <p className="text-gray-200 text-sm">
-              Productos de limpieza y amenities de la más alta calidad para empresas y hogares.
+            <p style={{ fontSize: 14.5, color: "rgba(255,255,255,0.65)", lineHeight: 1.65, maxWidth: 340 }}>
+              Fabricantes de productos de limpieza de alta calidad en Ibarra, Ecuador. Servicio mayoreo y menudeo con registro sanitario ARCSA.
             </p>
+
+            <div style={{ display: "flex", gap: 8, marginTop: 24 }}>
+              <SocialBtn href="https://facebook.com/soleyjaboneria" Icon={FbIcon} />
+              <SocialBtn href="https://instagram.com/soleyjaboneria" Icon={IgIcon} />
+              <SocialBtn href="https://wa.me/593961264102" Icon={WhatsAppIcon} />
+            </div>
           </div>
 
-          {/* Enlaces rápidos */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Enlaces</h3>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <a href="#inicio" className="text-gray-200 hover:text-white transition-colors">
-                  Inicio
-                </a>
-              </li>
-              <li>
-                <a href="#productos" className="text-gray-200 hover:text-white transition-colors">
-                  Productos
-                </a>
-              </li>
-              <li>
-                <a href="#nosotros" className="text-gray-200 hover:text-white transition-colors">
-                  Nosotros
-                </a>
-              </li>
-              <li>
-                <a href="#contacto" className="text-gray-200 hover:text-white transition-colors">
-                  Contacto
-                </a>
-              </li>
-            </ul>
+          <div>
+            <FooterTitle>Productos</FooterTitle>
+            <FooterList items={productLinks} />
           </div>
 
-          {/* Contacto y redes */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Síguenos</h3>
-            <div className="flex space-x-4">
-              <a
-                href="https://facebook.com/soleyjaboneria"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-200 hover:text-white transition-colors"
-                aria-label="Facebook"
-              >
-                <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                  <path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd" />
-                </svg>
+          <div>
+            <FooterTitle>Empresa</FooterTitle>
+            <FooterList items={companyLinks} />
+          </div>
+
+          <div>
+            <FooterTitle>Contacto</FooterTitle>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14, fontSize: 14, color: "rgba(255,255,255,0.78)" }}>
+              <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                <PinIcon width={16} height={16} style={{ color: "#8FB5E8", flexShrink: 0, marginTop: 2 }} />
+                <span>Luis Jaramillo Pérez 4-54 y José Tobar Tobar, Ibarra, Ecuador</span>
+              </div>
+              <a href="https://wa.me/593961264102" style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                <PhoneIcon width={16} height={16} style={{ color: "#8FB5E8", flexShrink: 0 }} />
+                <span>+593 96 126 4102</span>
               </a>
-              <a
-                href="https://instagram.com/soleyjaboneria"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-200 hover:text-white transition-colors"
-                aria-label="Instagram"
-              >
-                <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                  <path fillRule="evenodd" d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 6.621 5.367 11.988 11.988 11.988s11.987-5.367 11.987-11.988C24.004 5.367 18.637.001 12.017.001zM8.449 20.25c-2.608 0-4.72-2.113-4.72-4.721V8.472c0-2.608 2.112-4.72 4.72-4.72h7.102c2.607 0 4.72 2.112 4.72 4.72v7.057c0 2.608-2.113 4.721-4.72 4.721H8.449z" clipRule="evenodd" />
-                  <path fillRule="evenodd" d="M12.017 7.075c-2.708 0-4.9 2.192-4.9 4.9s2.192 4.901 4.9 4.901c2.709 0 4.901-2.193 4.901-4.901s-2.192-4.9-4.901-4.9zm0 8.068c-1.748 0-3.168-1.42-3.168-3.168 0-1.747 1.42-3.167 3.168-3.167s3.168 1.42 3.168 3.167c0 1.748-1.42 3.168-3.168 3.168z" clipRule="evenodd" />
-                  <circle cx="16.951" cy="7.075" r="1.154" />
-                </svg>
+              <a href="mailto:soleyjaboneria@gmail.com" style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                <MailIcon width={16} height={16} style={{ color: "#8FB5E8", flexShrink: 0 }} />
+                <span>soleyjaboneria@gmail.com</span>
               </a>
             </div>
-            <p className="text-gray-200 text-sm">@soleyjaboneria</p>
+
+            <div style={{
+              marginTop: 24, padding: "14px 16px",
+              background: "rgba(255,255,255,0.06)", borderRadius: 12,
+              border: "1px solid rgba(255,255,255,0.08)",
+            }}>
+              <div style={{ fontSize: 11.5, fontWeight: 700, color: "#FFA8B0", textTransform: "uppercase", letterSpacing: "0.06em" }}>Horario</div>
+              <div style={{ fontSize: 13.5, marginTop: 4 }}>Lun – Sáb · 8:00 – 18:00</div>
+            </div>
           </div>
         </div>
 
-        <div className="border-t border-gray-600 mt-8 pt-8 text-center">
-          <p className="text-gray-200 text-sm">
-            © 2024 Soley - Amenities & Productos de Limpieza. Todos los derechos reservados.
+        <div style={{
+          borderTop: "1px solid rgba(255,255,255,0.10)",
+          marginTop: 56, paddingTop: 24,
+          display: "flex", justifyContent: "space-between", alignItems: "center",
+          gap: 16, flexWrap: "wrap",
+        }}>
+          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)" }}>
+            © {new Date().getFullYear()} Soley · Amenities & Productos de Limpieza. Hecho en Ibarra, Ecuador.
           </p>
+          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)" }}>Registro sanitario ARCSA</p>
         </div>
-      </Container>
+      </div>
+
+      <style>{`
+        .footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.3fr; gap: 56px; }
+        @media (max-width: 980px) { .footer-grid { grid-template-columns: 1fr 1fr; gap: 40px; } }
+        @media (max-width: 560px) { .footer-grid { grid-template-columns: 1fr; } }
+      `}</style>
     </footer>
+  );
+}
+
+function FooterTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <h4 style={{
+      fontSize: 13, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em",
+      color: "white", marginBottom: 18,
+    }}>{children}</h4>
+  );
+}
+
+function FooterList({ items }: { items: [string, string][] }) {
+  return (
+    <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 11 }}>
+      {items.map(([label, href]) => (
+        <li key={label}>
+          <a href={href} style={{ fontSize: 14, color: "rgba(255,255,255,0.7)", transition: "color .15s" }}>
+            {label}
+          </a>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function SocialBtn({ href, Icon }: { href: string; Icon: React.ComponentType<React.SVGProps<SVGSVGElement>> }) {
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer" style={{
+      width: 40, height: 40, borderRadius: 12,
+      background: "rgba(255,255,255,0.08)",
+      border: "1px solid rgba(255,255,255,0.10)",
+      display: "inline-flex", alignItems: "center", justifyContent: "center",
+      color: "white", transition: "background .15s",
+    }}
+      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.18)")}
+      onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.08)")}
+    >
+      <Icon width={18} height={18} />
+    </a>
   );
 }

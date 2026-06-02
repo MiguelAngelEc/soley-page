@@ -17,7 +17,7 @@ interface Slide {
 const slides: Slide[] = [
   {
     eyebrow: "Detergente Líquido",
-    title: ["Limpieza que", "rinde el doble"],
+    title: ["Limpieza que", "rinde el doble y ahorra más"],
     desc: "Detergente concentrado de baja espuma. Una sola tapa lava lo que otras marcas lavan con dos.",
     tag: "Hasta 80 lavados",
     productId: "detergente-liquido",
@@ -208,10 +208,12 @@ function HeroShowcase({ slide, featured, idx, isTransitioning }: { slide: Slide;
         {slide.tag}
       </div>
 
-      <div style={{ position: "absolute", bottom: 32, left: "50%", transform: "translateX(-50%)",
+      <div style={{
+        position: "absolute", bottom: 32, left: "50%", transform: "translateX(-50%)",
         width: "65%", height: 24, borderRadius: "50%",
         background: "radial-gradient(ellipse, rgba(11,23,54,0.18) 0%, transparent 70%)",
-        filter: "blur(6px)" }} />
+        filter: "blur(6px)"
+      }} />
 
       <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: 40 }}>
         {featured ? <HeroBigBottle product={featured} /> : <ProductLineup />}
@@ -265,11 +267,15 @@ function HeroBigBottle({ product }: { product: Product }) {
   // Fallback al diseño CSS original si no hay imagen
   return (
     <div style={{ position: "relative", width: 260, height: 420 }}>
-      <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: 92, height: 40,
+      <div style={{
+        position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: 92, height: 40,
         background: "linear-gradient(180deg, var(--soley-blue-deep) 0%, #061B40 100%)",
-        borderRadius: "8px 8px 0 0", boxShadow: "inset -8px 0 16px rgba(0,0,0,0.25)" }} />
-      <div style={{ position: "absolute", top: 40, left: "50%", transform: "translateX(-50%)", width: 72, height: 32,
-        background: "linear-gradient(90deg, #5683C8, #1E5BBA, #5683C8)", boxShadow: "inset 0 -4px 8px rgba(0,0,0,0.2)" }} />
+        borderRadius: "8px 8px 0 0", boxShadow: "inset -8px 0 16px rgba(0,0,0,0.25)"
+      }} />
+      <div style={{
+        position: "absolute", top: 40, left: "50%", transform: "translateX(-50%)", width: 72, height: 32,
+        background: "linear-gradient(90deg, #5683C8, #1E5BBA, #5683C8)", boxShadow: "inset 0 -4px 8px rgba(0,0,0,0.2)"
+      }} />
       <div style={{
         position: "absolute", top: 72, left: 0, right: 0, bottom: 0,
         background: "linear-gradient(135deg, #4F86D5 0%, #1E5BBA 50%, #143F87 100%)",
@@ -277,8 +283,10 @@ function HeroBigBottle({ product }: { product: Product }) {
         boxShadow: "inset -22px 0 40px rgba(0,0,0,0.20), inset 18px 0 30px rgba(255,255,255,0.22), 0 30px 60px rgba(11,23,54,0.20)",
         overflow: "hidden",
       }}>
-        <div style={{ position: "absolute", top: 16, left: 20, width: 24, bottom: 40,
-          background: "rgba(255,255,255,0.30)", borderRadius: 999, filter: "blur(3px)" }} />
+        <div style={{
+          position: "absolute", top: 16, left: 20, width: 24, bottom: 40,
+          background: "rgba(255,255,255,0.30)", borderRadius: 999, filter: "blur(3px)"
+        }} />
         <div style={{
           position: "absolute", top: "22%", left: "14%", right: "14%", height: "58%",
           background: "white", borderRadius: 12,
@@ -305,7 +313,7 @@ function HeroBigBottle({ product }: { product: Product }) {
 
 function ProductLineup() {
   const productsToShow = [
-    { src: "/productos/Gel Litro.png", label: "1 L", name: "Gel", scale: 0.85 },
+    { src: "/productos/Alcohol Antiséptico Litro.png", label: "1 L", name: "Alcohol Antiséptico", scale: 0.85 },
     { src: "/productos/Desinfectante Caneca.png", label: "Caneca 20 L", name: "Desinfectante", scale: 1 },
     { src: "/productos/Jabón de Manos Galón.png", label: "Galón 4 L", name: "Jabón", scale: 0.9 },
   ];

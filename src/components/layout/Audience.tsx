@@ -20,10 +20,33 @@ export function Audience() {
         <div className="reveal-stagger audience-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
           {/* HOGAR */}
           <article className="audience-card" style={{
-            background: "white", borderRadius: 28, overflow: "hidden",
-            border: "1px solid var(--border)", display: "flex", flexDirection: "column", position: "relative",
+            borderRadius: 28,
+            overflow: "hidden",
+            border: "1px solid var(--border)",
+            display: "flex",
+            flexDirection: "column",
+            position: "relative",
+            minHeight: 480,
+            isolation: "isolate",
           }}>
-            <div style={{ padding: "40px 40px 0", position: "relative" }}>
+            {/* Capa de imagen — cubre TODO el article */}
+            <div style={{
+              position: "absolute",
+              inset: 0,
+              backgroundImage: `linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.75)), url('/Img-fondo/img-familia.png')`,
+              backgroundSize: "cover",
+              backgroundPosition: "center 20%",
+              backgroundRepeat: "no-repeat",
+              zIndex: 0,
+            }} />
+
+            {/* Contenido por encima */}
+            <div style={{
+              padding: "40px 40px 40px",
+              position: "relative",
+              zIndex: 1,
+              flex: 1,
+            }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
                 <div style={{
                   width: 56, height: 56, borderRadius: 16,
@@ -64,42 +87,41 @@ export function Audience() {
               </div>
 
               <a href="https://wa.me/593961264102?text=Hola%2C%20me%20interesa%20comprar%20para%20mi%20hogar"
-                target="_blank" rel="noopener noreferrer" className="btn btn-red">
+                target="_blank" rel="noopener noreferrer" className="btn btn-red" style={{ alignSelf: "flex-start" }}>
                 <WhatsAppIcon width={16} height={16} />Pedir por WhatsApp
               </a>
-            </div>
-
-            <div style={{
-              marginTop: 32, height: 180,
-              background: "linear-gradient(180deg, transparent 0%, rgba(225,29,46,0.04) 100%)",
-              position: "relative", overflow: "hidden",
-            }}>
-              <div style={{
-                position: "absolute", bottom: -50, left: -30, width: 220, height: 220,
-                backgroundImage: "radial-gradient(var(--soley-red) 1.5px, transparent 2px)",
-                backgroundSize: "14px 14px", opacity: 0.16,
-              }} />
-              <div style={{ position: "absolute", bottom: 0, left: "50%", transform: "translateX(-50%)", display: "flex", alignItems: "flex-end", gap: 14 }}>
-                <Bottle w={78} h={130} color="white" border label="1 L" />
-                <Bottle w={100} h={160} color="var(--soley-red)" label="Galón" />
-                <Bottle w={78} h={130} color="white" border label="1 L" />
-              </div>
             </div>
           </article>
 
           {/* EMPRESAS */}
           <article className="audience-card" style={{
-            background: "linear-gradient(160deg, var(--soley-blue-ink) 0%, var(--soley-blue-deep) 100%)",
-            borderRadius: 28, overflow: "hidden", color: "white",
-            display: "flex", flexDirection: "column", position: "relative",
+            borderRadius: 28,
+            overflow: "hidden",
+            color: "white",
+            display: "flex",
+            flexDirection: "column",
+            position: "relative",
+            minHeight: 480,
+            isolation: "isolate",
           }}>
+            {/* Capa de imagen — cubre TODO el article */}
+            <div style={{
+              position: "absolute",
+              inset: 0,
+              backgroundImage: `linear-gradient(rgba(11,23,54,0.85), rgba(11,23,54,0.75)), url('/Img-fondo/img-trabajador.png')`,
+              backgroundSize: "cover",
+              backgroundPosition: "center 20%",
+              backgroundRepeat: "no-repeat",
+              zIndex: 0,
+            }} />
             <div style={{
               position: "absolute", top: -40, right: -40, width: 260, height: 260,
               backgroundImage: "radial-gradient(white 1.5px, transparent 2px)",
               backgroundSize: "16px 16px", opacity: 0.10,
+              zIndex: 1,
             }} />
 
-            <div style={{ padding: "40px 40px 0", position: "relative" }}>
+            <div style={{ padding: "40px 40px 0", position: "relative", zIndex: 1 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
                 <div style={{
                   width: 56, height: 56, borderRadius: 16,
@@ -147,14 +169,6 @@ export function Audience() {
 
               <a href="#contacto" className="btn btn-red">Solicitar cotización<ArrowIcon width={16} height={16} /></a>
             </div>
-
-            <div style={{ marginTop: 32, height: 180, position: "relative", overflow: "hidden" }}>
-              <div style={{ position: "absolute", bottom: 0, left: "50%", transform: "translateX(-50%)", display: "flex", alignItems: "flex-end", gap: 14 }}>
-                <Bottle w={110} h={160} color="#5683C8" label="Caneca" />
-                <Bottle w={130} h={180} color="#3C6FB8" label="20 L" />
-                <Bottle w={110} h={160} color="#5683C8" label="Caneca" />
-              </div>
-            </div>
           </article>
         </div>
       </div>
@@ -165,30 +179,5 @@ export function Audience() {
         @media (max-width: 880px) { .audience-grid { grid-template-columns: 1fr !important; } }
       `}</style>
     </section>
-  );
-}
-
-function Bottle({ w, h, color, label, border }: { w: number; h: number; color: string; label: string; border?: boolean }) {
-  return (
-    <div style={{
-      position: "relative", width: w, height: h,
-      background: color, borderRadius: "8px 8px 16px 16px",
-      border: border ? "1px solid var(--border-strong)" : "none",
-      boxShadow: "0 14px 28px rgba(11,23,54,0.18)",
-    }}>
-      <div style={{
-        position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)",
-        width: w * 0.35, height: 12,
-        background: "var(--soley-blue-deep)", borderRadius: "3px 3px 0 0",
-      }} />
-      <div style={{
-        position: "absolute", top: "30%", left: "12%", right: "12%", height: "44%",
-        background: "white", borderRadius: 4, border: "1px solid var(--border)",
-        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-      }}>
-        <div style={{ fontSize: 8, fontWeight: 800, color: "var(--soley-blue)" }}>SOLEY</div>
-        <div style={{ fontSize: 6.5, color: "var(--soley-red)", marginTop: 2, fontWeight: 700 }}>{label}</div>
-      </div>
-    </div>
   );
 }

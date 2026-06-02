@@ -64,7 +64,9 @@ export function FAQ() {
                   overflow: "hidden",
                   transition: "max-height .3s cubic-bezier(0.4, 0, 0.2, 1)",
                 }}>
-                  <div ref={el => contentRefs.current[i] = el}>
+                  <div ref={el => {
+                    if (el) contentRefs.current[i] = el;
+                  }}>
                     <p style={{ padding: "0 24px 22px", fontSize: 14.5, color: "var(--muted)", lineHeight: 1.65 }}>{f.a}</p>
                   </div>
                 </div>

@@ -1,9 +1,14 @@
 export type ProductCategory = "cleaning" | "disinfection" | "sanitization";
 export type PresentationType = "mayoreo" | "menudeo";
+export type PresentationSize = "litro" | "galon" | "caneca";
 
 export interface ProductPresentation {
   size: string;
   type: PresentationType;
+  presentationSize: PresentationSize;
+  volume: string;
+  price: number;
+  image: string;
 }
 
 export interface ProductSpec {
@@ -41,9 +46,9 @@ export const products: Product[] = [
       { k: "Aroma", v: "Neutro / floral" },
     ],
     presentations: [
-      { size: "Caneca 20 L", type: "mayoreo" },
-      { size: "Galón 4 L", type: "menudeo" },
-      { size: "Botella 1 L", type: "menudeo" },
+      { size: "Botella 1 L", type: "menudeo", presentationSize: "litro", volume: "1 L", price: 1, image: "/productos/Gel Litro.png" },
+      { size: "Galón 4 L", type: "menudeo", presentationSize: "galon", volume: "4 L", price: 6, image: "/productos/Gel Galón.png" },
+      { size: "Caneca 20 L", type: "mayoreo", presentationSize: "caneca", volume: "20 L", price: 20, image: "/productos/Gel Caneca.png" },
     ],
     featured: true,
     color: "#16A34A",
@@ -63,9 +68,9 @@ export const products: Product[] = [
       { k: "Uso", v: "Externo" },
     ],
     presentations: [
-      { size: "Caneca 20 L", type: "mayoreo" },
-      { size: "Galón 4 L", type: "menudeo" },
-      { size: "Botella 1 L", type: "menudeo" },
+      { size: "Botella 1 L", type: "menudeo", presentationSize: "litro", volume: "1 L", price: 1, image: "/productos/Alcohol Antiséptico Litro.png" },
+      { size: "Galón 4 L", type: "menudeo", presentationSize: "galon", volume: "4 L", price: 6, image: "/productos/Alcohol Antiséptico Galón.png" },
+      { size: "Caneca 20 L", type: "mayoreo", presentationSize: "caneca", volume: "20 L", price: 20, image: "/productos/Alcohol Antiséptico Caneca.png" },
     ],
     featured: true,
     color: "#0EA5E9",
@@ -85,9 +90,9 @@ export const products: Product[] = [
       { k: "Diluible", v: "Sí" },
     ],
     presentations: [
-      { size: "Caneca 20 L", type: "mayoreo" },
-      { size: "Galón 4 L", type: "menudeo" },
-      { size: "Botella 1 L", type: "menudeo" },
+      { size: "Botella 1 L", type: "menudeo", presentationSize: "litro", volume: "1 L", price: 1, image: "/productos/Desinfectante Litro.png" },
+      { size: "Galón 4 L", type: "menudeo", presentationSize: "galon", volume: "4 L", price: 6, image: "/productos/Desinfectante Galón.png" },
+      { size: "Caneca 20 L", type: "mayoreo", presentationSize: "caneca", volume: "20 L", price: 20, image: "/productos/Desinfectante Caneca.png" },
     ],
     featured: true,
     color: "#7C3AED",
@@ -107,9 +112,9 @@ export const products: Product[] = [
       { k: "Glicerina", v: "Sí" },
     ],
     presentations: [
-      { size: "Caneca 20 L", type: "mayoreo" },
-      { size: "Galón 4 L", type: "menudeo" },
-      { size: "Botella 1 L", type: "menudeo" },
+      { size: "Botella 1 L", type: "menudeo", presentationSize: "litro", volume: "1 L", price: 1, image: "/productos/Jabón de Manos Litro.png" },
+      { size: "Galón 4 L", type: "menudeo", presentationSize: "galon", volume: "4 L", price: 6, image: "/productos/Jabón de Manos Galón.png" },
+      { size: "Caneca 20 L", type: "mayoreo", presentationSize: "caneca", volume: "20 L", price: 20, image: "/productos/Jabón de Manos Caneca.png" },
     ],
     featured: true,
     color: "#F59E0B",
@@ -129,9 +134,9 @@ export const products: Product[] = [
       { k: "Acción", v: "Desinfectante" },
     ],
     presentations: [
-      { size: "Caneca 20 L", type: "mayoreo" },
-      { size: "Galón 4 L", type: "menudeo" },
-      { size: "Botella 1 L", type: "menudeo" },
+      { size: "Botella 1 L", type: "menudeo", presentationSize: "litro", volume: "1 L", price: 1, image: "/productos/Cloro Litro.png" },
+      { size: "Galón 4 L", type: "menudeo", presentationSize: "galon", volume: "4 L", price: 6, image: "/productos/Cloro Galón.png" },
+      { size: "Caneca 20 L", type: "mayoreo", presentationSize: "caneca", volume: "20 L", price: 20, image: "/productos/Cloro Caneca.png" },
     ],
     featured: true,
     color: "#06B6D4",
@@ -151,9 +156,9 @@ export const products: Product[] = [
       { k: "Rendimiento", v: "2× estándar" },
     ],
     presentations: [
-      { size: "Caneca 20 L", type: "mayoreo" },
-      { size: "Galón 4 L", type: "menudeo" },
-      { size: "Botella 1 L", type: "menudeo" },
+      { size: "Botella 1 L", type: "menudeo", presentationSize: "litro", volume: "1 L", price: 1, image: "/productos/Detergente Litro.png" },
+      { size: "Galón 4 L", type: "menudeo", presentationSize: "galon", volume: "4 L", price: 6, image: "/productos/Detergente Galón.png" },
+      { size: "Caneca 20 L", type: "mayoreo", presentationSize: "caneca", volume: "20 L", price: 20, image: "/productos/Detergente Caneca.png" },
     ],
     featured: true,
     color: "#3B82F6",

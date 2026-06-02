@@ -65,16 +65,6 @@ export function Catalog() {
 
         <div className="catalog-controls reveal">
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            <button onClick={() => handleCategoryChange("all")}
-              style={{
-                padding: "10px 20px", borderRadius: 999,
-                fontSize: 14, fontWeight: 600,
-                background: cat === "all" ? "var(--soley-blue)" : "white",
-                color: cat === "all" ? "white" : "var(--ink-2)",
-                border: cat === "all" ? "1px solid var(--soley-blue)" : "1px solid var(--border)",
-                transition: "all .15s",
-                boxShadow: cat === "all" ? "var(--shadow-blue)" : "var(--shadow-sm)",
-              }}>Todos</button>
             {categories.map((c) => (
               <button key={c.id} onClick={() => handleCategoryChange(c.id)}
                 style={{

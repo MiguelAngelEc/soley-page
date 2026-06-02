@@ -16,12 +16,12 @@ interface Tile {
 }
 
 const tiles: Tile[] = [
-  { type: "product", title: "Promoción 1", color: "#3B82F6", image: "/promo/1.png" },
-  { type: "product", title: "Promoción 2", color: "#06B6D4", image: "/promo/2.png" },
+  { type: "product", title: "Promoción 1", color: "#3B82F6", image: "/IG/1.png" },
+  { type: "product", title: "Promoción 2", color: "#06B6D4", image: "/IG/2.png" },
   { type: "quote", title: "5★", body: "\"Calidad consistente caneca tras caneca.\"", color: "var(--soley-red)" },
-  { type: "product", title: "Promoción 3", color: "var(--soley-blue)", image: "/promo/3.png" },
+  { type: "product", title: "Promoción 3", color: "var(--soley-blue)", image: "/IG/3.png" },
   { type: "behind", title: "En planta", body: "Cómo formulamos nuestro desinfectante multiusos.", color: "var(--soley-blue-deep)" },
-  { type: "product", title: "Promoción 4", color: "#F59E0B", image: "/promo/4.png" },
+  { type: "product", title: "Promoción 4", color: "#F59E0B", image: "/IG/4.png" },
 ];
 
 export function Instagram() {

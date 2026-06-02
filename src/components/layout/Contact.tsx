@@ -210,6 +210,43 @@ ${form.message}`;
       <style>{`
         .contact-grid { display: grid; grid-template-columns: 1fr 1.05fr; gap: 32px; }
         @media (max-width: 980px) { .contact-grid { grid-template-columns: 1fr; } }
+
+        /* Mobile styles for contact items */
+        @media (max-width: 640px) {
+          /* Hide text for phone, email, and social media on mobile */
+          .contact-item-text:not(.address-item) {
+            display: none;
+          }
+
+          /* Show text only for address */
+          .contact-item-text.address-item {
+            display: block;
+          }
+
+          /* Center icons when text is hidden */
+          .contact-item-text:not(.address-item) + div {
+            margin: 0 auto;
+          }
+
+          /* Adjust contact items for icon-only display */
+          a[href*="wa.me"] > div:first-child,
+          a[href*="mailto"] > div:first-child,
+          a[href*="instagram"] > div:first-child,
+          a[href*="facebook"] > div:first-child {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto;
+          }
+
+          /* Make contact items more compact on mobile */
+          a[href*="wa.me"],
+          a[href*="mailto"],
+          a[href*="instagram"],
+          a[href*="facebook"] {
+            justify-content: center;
+            padding: 14px;
+          }
+        }
       `}</style>
     </section>
   );
@@ -218,6 +255,9 @@ ${form.message}`;
 function ContactItem({ Icon, label, value, href, accent, full }: {
   Icon: IconCmp; label: string; value: string; href?: string; accent: string; full?: boolean;
 }) {
+  const isAddress = label === "Dirección";
+  const isSocial = label === "Instagram" || label === "Facebook";
+
   const baseStyle: React.CSSProperties = {
     background: "white", borderRadius: 16, padding: 18,
     border: "1px solid var(--border)",
@@ -235,7 +275,7 @@ function ContactItem({ Icon, label, value, href, accent, full }: {
       }}>
         <Icon width={18} height={18} />
       </div>
-      <div style={{ minWidth: 0 }}>
+      <div className={`contact-item-text ${isAddress ? 'address-item' : ''} ${isSocial ? 'social-item' : ''}`} style={{ minWidth: 0 }}>
         <div style={{ fontSize: 11.5, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</div>
         <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", marginTop: 2, wordBreak: "break-word" }}>{value}</div>
       </div>

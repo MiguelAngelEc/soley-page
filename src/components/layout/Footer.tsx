@@ -15,7 +15,7 @@ const productLinks: [string, string][] = [
 const companyLinks: [string, string][] = [
   ["Por qué Soley", "#por-que"],
   ["Para empresas", "#empresas"],
-  ["Cotización mayoreo", "#contacto"],
+  ["Cotización al por mayor", "#contacto"],
   ["Etiqueta privada", "#contacto"],
   ["Preguntas frecuentes", "#"],
 ];
@@ -45,7 +45,7 @@ export function Footer() {
               </div>
             </div>
             <p style={{ fontSize: 14.5, color: "rgba(255,255,255,0.65)", lineHeight: 1.65, maxWidth: 340 }}>
-              Fabricantes de productos de limpieza de alta calidad en Ibarra, Ecuador. Servicio mayoreo y menudeo con registro sanitario ARCSA.
+              Fabricantes de productos de limpieza de alta calidad en Ibarra, Ecuador. Servicio al por mayor y al por menor con registro sanitario ARCSA.
             </p>
 
             <div style={{ display: "flex", gap: 8, marginTop: 24 }}>

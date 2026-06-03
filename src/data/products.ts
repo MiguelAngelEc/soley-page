@@ -46,9 +46,9 @@ export const products: Product[] = [
       { k: "Aroma", v: "Neutro / floral" },
     ],
     presentations: [
-      { size: "Botella 1 L", type: "menudeo", presentationSize: "litro", volume: "1 L", price: 1, image: "/productos/Gel Litro.png" },
-      { size: "Galón 4 L", type: "menudeo", presentationSize: "galon", volume: "4 L", price: 6, image: "/productos/Gel Galón.png" },
-      { size: "Caneca 20 L", type: "mayoreo", presentationSize: "caneca", volume: "20 L", price: 20, image: "/productos/Gel Caneca.png" },
+      { size: "Botella 1 L", type: "menudeo", presentationSize: "litro", volume: "1 L", price: 1, image: "/productos/Gel Antibacterial  Litro.png" },
+      { size: "Galón 4 L", type: "menudeo", presentationSize: "galon", volume: "4 L", price: 6, image: "/productos/Gel Antibacterial Galón.png" },
+      { size: "Caneca 20 L", type: "mayoreo", presentationSize: "caneca", volume: "20 L", price: 20, image: "/productos/Gel Antibacterial  Caneca.png" },
     ],
     featured: true,
     color: "#16A34A",
@@ -152,7 +152,7 @@ export const products: Product[] = [
     uses: ["Lavanderías industriales", "Hoteles", "Lavado en frío", "Hogar"],
     specs: [
       { k: "Concentración", v: "Alta" },
-      { k: "Espuma", v: "Baja" },
+      { k: "Espuma", v: "Alta" },
       { k: "Rendimiento", v: "2× estándar" },
     ],
     presentations: [

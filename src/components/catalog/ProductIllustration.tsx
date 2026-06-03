@@ -6,9 +6,9 @@ import Image from "next/image";
 export function ProductIllustration({ product, hover }: { product: Product; hover: boolean }) {
   // Mapeo de IDs de productos a nombres de archivos de imagen
   const productImages: Record<string, string> = {
-    "gel-antibacterial": "/productos/Gel Galón.png",
-    "alcohol-antiseptico": "/productos/Alcohol Galón.png",
-    "desinfectante": "/productos/Desinfectante Galon.png",
+    "gel-antibacterial": "/productos/Gel Antibacterial Galón.png",
+    "alcohol-antiseptico": "/productos/Alcohol Antiséptico Galón.png",
+    "desinfectante": "/productos/Desinfectante Galón.png",
     "jabon-liquido": "/productos/Jabón de Manos Galón.png",
     "cloro-5": "/productos/Cloro Galón.png",
     "detergente-liquido": "/productos/Detergente Galón.png",

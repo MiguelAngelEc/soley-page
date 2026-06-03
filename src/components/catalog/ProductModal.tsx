@@ -1,7 +1,5 @@
 "use client";
 
-"use client";
-
 import { useEffect } from "react";
 import type { Product } from "@/data/products";
 import { ProductIllustration } from "./ProductIllustration";
@@ -21,7 +19,7 @@ export function ProductModal({ product, onClose }: { product: Product; onClose: 
   return (
     <div className="modal-overlay open" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-        <div style={{
+        <div className="modal-image-section" style={{
           position: "relative",
           background: "linear-gradient(160deg, #F7FAFD 0%, #E2ECF8 100%)",
           padding: 32, display: "flex", alignItems: "center", justifyContent: "center", minHeight: 420,
@@ -36,7 +34,7 @@ export function ProductModal({ product, onClose }: { product: Product; onClose: 
           <ProductIllustration product={product} hover={false} />
         </div>
 
-        <div style={{ padding: "32px 36px", display: "flex", flexDirection: "column", gap: 18, overflowY: "auto" }}>
+        <div className="modal-content-section" style={{ padding: "32px 36px", display: "flex", flexDirection: "column", gap: 18, overflowY: "auto", maxHeight: "90vh" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <span style={{
               padding: "6px 12px", borderRadius: 999,
@@ -119,6 +117,21 @@ export function ProductModal({ product, onClose }: { product: Product; onClose: 
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        @media (max-width: 760px) {
+          .modal-image-section {
+            min-height: 200px !important;
+            max-height: 200px !important;
+            padding: 16px !important;
+          }
+          .modal-content-section {
+            padding: 20px !important;
+            max-height: calc(95vh - 200px) !important;
+            overflow-y: auto !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

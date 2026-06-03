@@ -18,7 +18,7 @@ const slides: Slide[] = [
   {
     eyebrow: "Detergente Líquido",
     title: ["Limpieza que", "rinde el doble y ahorra más"],
-    desc: "Detergente concentrado de baja espuma. Una sola tapa lava lo que otras marcas lavan con dos.",
+    desc: "Detergente concentrado de alta espuma. Una sola tapa lava lo que otras marcas lavan con dos.",
     tag: "Hasta 80 lavados",
     productId: "detergente-liquido",
   },
@@ -33,7 +33,7 @@ const slides: Slide[] = [
     eyebrow: "Línea completa",
     title: ["Amenities y limpieza", "para tu negocio"],
     desc: "6 productos, 3 presentaciones cada uno. Hecho en Ecuador con registro sanitario ARCSA.",
-    tag: "Mayoreo & menudeo",
+    tag: "Al Por Mayor & Al Por Menor",
     productId: null,
   },
 ];
@@ -69,13 +69,9 @@ export function Hero() {
   }, [idx, isTransitioning]);
 
   return (
-    <section id="inicio" style={{
+    <section id="inicio" className="hero-section" style={{
       position: "relative",
-      overflow: "hidden",
-      background: `linear-gradient(rgba(255,255,255,0.75), rgba(255,255,255,0.75)), url('/Img-fondo/Img-fondo.png')`,
-      backgroundSize: "contain",
-      backgroundPosition: "center",
-      backgroundRepeat: "no-repeat"
+      overflow: "hidden"
     }}>
       <div className="halftone" style={{ top: 80, left: -60, width: 380, height: 380 }} />
       <div className="halftone halftone-red" style={{ bottom: -40, right: -60, width: 280, height: 280, transform: "rotate(180deg)" }} />
@@ -165,6 +161,17 @@ export function Hero() {
       </div>
 
       <style>{`
+        .hero-section {
+          background: linear-gradient(rgba(255,255,255,0.75), rgba(255,255,255,0.75)), url('/Img-fondo/Img-fondo.png');
+          background-size: contain;
+          background-position: 25% center;
+          background-repeat: no-repeat;
+        }
+        @media (max-width: 768px) {
+          .hero-section {
+            background: linear-gradient(rgba(255,255,255,0.75), rgba(255,255,255,0.75));
+          }
+        }
         .hero-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 80px; align-items: center; }
         @media (max-width: 980px) {
           .hero-grid { grid-template-columns: 1fr; gap: 48px; }

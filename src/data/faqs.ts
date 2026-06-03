@@ -9,8 +9,8 @@ export const faqs: Faq[] = [
     a: "Sí. Realizamos entregas en Ibarra y la provincia de Imbabura sin costo adicional para pedidos mayores a $30. Para otras provincias coordinamos envío por encomienda.",
   },
   {
-    q: "¿Cuál es el pedido mínimo para mayoreo?",
-    a: "Para precios de mayoreo el pedido mínimo es de 4 canecas (puede combinar productos). A partir de 10 canecas aplicamos descuentos por volumen.",
+    q: "¿Cuál es el pedido mínimo al por mayor?",
+    a: "Para precios al por mayor el pedido mínimo es de 4 canecas (puede combinar productos). A partir de 10 canecas aplicamos descuentos por volumen.",
   },
   {
     q: "¿Sus productos cuentan con registro sanitario?",
@@ -25,7 +25,7 @@ export const faqs: Faq[] = [
     a: "Transferencia bancaria, depósito, efectivo y pago contra entrega en Ibarra. Para empresas manejamos crédito a 30 días previa aprobación.",
   },
   {
-    q: "¿Cómo cotizo al mayoreo?",
+    q: "¿Cómo cotizo al por mayor?",
     a: "Escríbenos por WhatsApp al +593 96 126 4102 o llena el formulario de cotización. Te enviamos lista de precios y catálogo en menos de 24 horas.",
   },
 ];

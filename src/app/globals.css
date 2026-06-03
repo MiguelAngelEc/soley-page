@@ -180,7 +180,16 @@ p { margin: 0; color: var(--muted); }
   transform: scale(.96); transition: transform .2s; box-shadow: var(--shadow-lg);
 }
 .modal-overlay.open .modal-card { transform: scale(1); }
-@media (max-width: 760px) { .modal-card { grid-template-columns: 1fr; } }
+@media (max-width: 760px) {
+  .modal-card {
+    grid-template-columns: 1fr;
+    max-height: 95vh;
+    overflow-y: auto;
+  }
+  .modal-overlay {
+    padding: 12px;
+  }
+}
 
 .stat-num { font-variant-numeric: tabular-nums; }
 

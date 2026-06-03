@@ -69,7 +69,7 @@ export function Audience() {
               <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 32 }}>
                 {[
                   "Presentaciones 1L y galón 4L",
-                  "Fórmulas seguras y biodegradables",
+                  "Fórmulas seguras",
                   "Aromas suaves de larga duración",
                   "Entrega a domicilio en Ibarra",
                 ].map((b) => (
@@ -141,7 +141,7 @@ export function Audience() {
               </div>
 
               <h3 style={{ color: "white", fontSize: 32, marginBottom: 12 }}>
-                Canecas industriales <span style={{ color: "#8FB5E8" }}>con precios al mayoreo</span>
+                Canecas industriales <span style={{ color: "#8FB5E8" }}>con precios al por mayor</span>
               </h3>
               <p style={{ fontSize: 15.5, lineHeight: 1.6, marginBottom: 28, color: "rgba(255,255,255,0.78)" }}>
                 Hoteles, restaurantes, lavanderías y clínicas confían en nuestras canecas de 20L para sostener su operación diaria.

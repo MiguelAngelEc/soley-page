@@ -98,8 +98,8 @@ export function Catalog() {
               }}
             />
             {([
-              { id: "menudeo", label: "Menudeo · Hogar" },
-              { id: "mayoreo", label: "Mayoreo · Empresas" },
+              { id: "menudeo", label: "Al Por Menor · Hogar" },
+              { id: "mayoreo", label: "Al Por Mayor · Empresas" },
             ] as const).map((m) => (
               <button key={m.id} onClick={() => setMode(m.id)}
                 style={{
@@ -152,7 +152,7 @@ export function Catalog() {
             backgroundSize: "16px 16px", opacity: 0.10,
           }} />
           <div style={{ position: "relative", maxWidth: 540 }}>
-            <h3 style={{ color: "white", fontSize: 28, marginBottom: 8 }}>¿Necesitas precios al mayoreo?</h3>
+            <h3 style={{ color: "white", fontSize: 28, marginBottom: 8 }}>¿Necesitas precios al por mayor?</h3>
             <p style={{ color: "rgba(255,255,255,0.82)", fontSize: 15.5 }}>
               Cotizamos tu pedido en menos de 24 horas. Desde 4 canecas en adelante con descuentos por volumen.
             </p>

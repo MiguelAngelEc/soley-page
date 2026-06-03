@@ -1,12 +1,10 @@
 "use client";
 
-"use client";
-
 import { useState, useEffect } from "react";
 import { WhatsAppIcon, CloseIcon, ArrowIcon } from "@/components/shared/Icons";
 
 const options = [
-  "Quiero cotizar al mayoreo",
+  "Quiero cotizar al por mayor",
   "Necesito producto para mi hogar",
   "Personalizar etiqueta (marca blanca)",
 ];

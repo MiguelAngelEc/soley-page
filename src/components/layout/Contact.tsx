@@ -1,7 +1,5 @@
 "use client";
 
-"use client";
-
 import { useState, useRef, ComponentType, SVGProps } from "react";
 import { useReveal } from "@/lib/hooks";
 import { products } from "@/data/products";
@@ -43,7 +41,7 @@ export function Contact() {
     const productList = form.products.length ? form.products.join(", ") : "—";
     const text = `Hola Soley, quiero cotizar:
 
-Tipo: ${form.type === "mayoreo" ? "Mayoreo / Empresa" : "Menudeo / Hogar"}
+Tipo: ${form.type === "mayoreo" ? "Al Por Mayor / Empresa" : "Al Por Menor / Hogar"}
 Nombre: ${form.name}
 Email: ${form.email}
 Teléfono: ${form.phone}
@@ -135,7 +133,7 @@ ${form.message}`;
               }}>
                 {([
                   { id: "menudeo", label: "Hogar" },
-                  { id: "mayoreo", label: "Empresa / Mayoreo" },
+                  { id: "mayoreo", label: "Empresa / Al Por Mayor" },
                 ] as const).map((t) => (
                   <button key={t.id} type="button" onClick={() => setForm({ ...form, type: t.id })}
                     style={{

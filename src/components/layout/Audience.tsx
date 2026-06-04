@@ -42,10 +42,12 @@ export function Audience() {
 
             {/* Contenido por encima */}
             <div style={{
-              padding: "40px 40px 40px",
+              padding: "40px",
               position: "relative",
               zIndex: 1,
               flex: 1,
+              display: "flex",
+              flexDirection: "column",
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
                 <div style={{
@@ -121,7 +123,14 @@ export function Audience() {
               zIndex: 1,
             }} />
 
-            <div style={{ padding: "40px 40px 0", position: "relative", zIndex: 1 }}>
+            <div style={{
+              padding: "40px",
+              position: "relative",
+              zIndex: 1,
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+            }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
                 <div style={{
                   width: 56, height: 56, borderRadius: 16,

@@ -33,11 +33,10 @@ export function Header() {
         position: "sticky",
         top: 0,
         zIndex: 50,
-        background: scrolled ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0)",
-        backdropFilter: scrolled ? "blur(14px) saturate(180%)" : "none",
-        WebkitBackdropFilter: scrolled ? "blur(14px) saturate(180%)" : "none",
-        borderBottom: scrolled ? "1px solid var(--border)" : "1px solid transparent",
-        transition: "background .2s ease, border-color .2s ease, backdrop-filter .2s ease",
+        background: "white",
+        borderBottom: "1px solid var(--border)",
+        boxShadow: scrolled ? "0 2px 8px rgba(0,0,0,0.08)" : "0 1px 3px rgba(0,0,0,0.04)",
+        transition: "box-shadow .2s ease",
       }}
     >
       <div className="container-x" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 76 }}>

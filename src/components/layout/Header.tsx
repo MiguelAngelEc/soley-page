@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { WhatsAppIcon, MenuIcon, CloseIcon } from "@/components/shared/Icons";
+import { WhatsAppIcon, MenuIcon, CloseIcon, DocumentIcon } from "@/components/shared/Icons";
 
 interface NavItem { name: string; href: string }
 
@@ -55,6 +55,10 @@ export function Header() {
         </nav>
 
         <div className="desktop-cta" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <a href="/Catalogo/CatálogoSOLEY.pdf" target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-outline-blue">
+            <DocumentIcon width={16} height={16} />
+            Catálogo
+          </a>
           <a href="#contacto" className="btn btn-sm btn-ghost">Cotizar</a>
           <a href="https://wa.me/593961264102" target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-red">
             <WhatsAppIcon width={16} height={16} />
@@ -87,6 +91,10 @@ export function Header() {
             ))}
           </nav>
           <div style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 12 }}>
+            <a href="/Catalogo/CatálogoSOLEY.pdf" target="_blank" rel="noopener noreferrer" className="btn btn-outline-blue">
+              <DocumentIcon width={18} height={18} />
+              Descargar catálogo PDF
+            </a>
             <a href="#contacto" className="btn btn-blue" onClick={() => setMobileOpen(false)}>Solicitar cotización</a>
             <a href="https://wa.me/593961264102" className="btn btn-red"><WhatsAppIcon width={18} height={18} />WhatsApp</a>
           </div>

@@ -6,7 +6,7 @@ import type { Product, ProductCategory, PresentationType } from "@/data/products
 import { ProductCard } from "./ProductCard";
 import { ProductModal } from "./ProductModal";
 import { useReveal } from "@/lib/hooks";
-import { ArrowIcon, WhatsAppIcon } from "@/components/shared/Icons";
+import { ArrowIcon, WhatsAppIcon, DocumentIcon, DownloadIcon } from "@/components/shared/Icons";
 
 export function Catalog() {
   const [cat, setCat] = useState<ProductCategory | "all">("all");
@@ -112,6 +112,66 @@ export function Catalog() {
                 }}>{m.label}</button>
             ))}
           </div>
+        </div>
+
+        <div className="reveal" style={{
+          marginTop: 32,
+          background: "linear-gradient(135deg, #F0F6FD 0%, #E3F0FF 100%)",
+          borderRadius: 24,
+          padding: "32px 40px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 24,
+          flexWrap: "wrap",
+          border: "1px solid var(--soley-blue)",
+          borderColor: "rgba(30, 91, 186, 0.2)",
+          position: "relative",
+          overflow: "hidden",
+        }}>
+          <div style={{
+            position: "absolute",
+            top: -30,
+            left: -30,
+            width: 200,
+            height: 200,
+            backgroundImage: "radial-gradient(var(--soley-blue) 1.5px, transparent 2px)",
+            backgroundSize: "16px 16px",
+            opacity: 0.08,
+          }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 20, position: "relative", flex: 1 }}>
+            <div style={{
+              width: 56,
+              height: 56,
+              borderRadius: 16,
+              background: "white",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 4px 12px rgba(30,91,186,0.15)",
+              flexShrink: 0,
+            }}>
+              <DocumentIcon width={28} height={28} style={{ color: "var(--soley-blue)" }} />
+            </div>
+            <div>
+              <h3 style={{ fontSize: 20, fontWeight: 800, color: "var(--soley-blue-deep)", marginBottom: 4 }}>
+                📄 Catálogo completo en PDF
+              </h3>
+              <p style={{ fontSize: 14.5, color: "var(--muted)", margin: 0 }}>
+                Descarga todos nuestros productos, presentaciones y precios en un solo documento
+              </p>
+            </div>
+          </div>
+          <a
+            href="/Catalogo/CatálogoSOLEY.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-blue"
+            style={{ position: "relative" }}
+          >
+            <DownloadIcon width={18} height={18} />
+            Descargar PDF
+          </a>
         </div>
 
         <div

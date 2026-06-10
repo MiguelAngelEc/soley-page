@@ -4,7 +4,7 @@ import { useState, useRef, ComponentType, SVGProps } from "react";
 import { useReveal } from "@/lib/hooks";
 import { products } from "@/data/products";
 import {
-  ArrowIcon, WhatsAppIcon, MailIcon, PinIcon, IgIcon, FbIcon,
+  ArrowIcon, WhatsAppIcon, MailIcon, PinIcon, IgIcon, FbIcon, DocumentIcon,
 } from "@/components/shared/Icons";
 
 type IconCmp = ComponentType<SVGProps<SVGSVGElement>>;
@@ -125,6 +125,37 @@ ${form.message}`;
             border: "1px solid var(--border)", boxShadow: "var(--shadow-md)",
             display: "flex", flexDirection: "column", gap: 18,
           }}>
+            <div style={{
+              background: "linear-gradient(135deg, #F0F6FD 0%, #E3F0FF 100%)",
+              borderRadius: 16,
+              padding: "16px 20px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 16,
+              marginBottom: 8,
+              border: "1px solid rgba(30, 91, 186, 0.15)",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <DocumentIcon width={20} height={20} style={{ color: "var(--soley-blue)" }} />
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--soley-blue-deep)" }}>
+                    ¿Prefieres revisar primero?
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 1 }}>
+                    Descarga nuestro catálogo completo
+                  </div>
+                </div>
+              </div>
+              <a
+                href="/Catalogo/CatálogoSOLEY.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-sm btn-outline-blue"
+              >
+                PDF
+              </a>
+            </div>
             <div>
               <Label>Tipo de cotización</Label>
               <div style={{

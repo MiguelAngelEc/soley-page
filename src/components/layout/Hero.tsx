@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { products } from "@/data/products";
 import type { Product } from "@/data/products";
-import { ArrowIcon, WhatsAppIcon } from "@/components/shared/Icons";
+import { ArrowIcon, WhatsAppIcon, DocumentIcon } from "@/components/shared/Icons";
 import Image from "next/image";
 
 interface Slide {

@@ -132,6 +132,8 @@ p { margin: 0; color: var(--muted); }
 .btn-blue:hover { background: var(--soley-blue-deep); }
 .btn-ghost { background: white; color: var(--ink); border: 1.5px solid var(--border-strong); }
 .btn-ghost:hover { border-color: var(--ink); }
+.btn-outline-blue { color: var(--soley-blue); background: white; border: 1.5px solid var(--soley-blue); }
+.btn-outline-blue:hover { background: var(--bg-blue-tint); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(30,91,186,0.15); }
 .btn-outline-white { background: transparent; color: white; border: 1.5px solid rgba(255,255,255,0.32); }
 .btn-outline-white:hover { background: rgba(255,255,255,0.1); }
 .btn-sm { height: 42px; padding: 0 18px; font-size: 14px; }

@@ -2,6 +2,7 @@
 
 import { useState, useRef, ComponentType, SVGProps } from "react";
 import { useReveal } from "@/lib/hooks";
+import { LIMITS, cleanField, cleanMultiline, buildWhatsAppUrl, openWhatsApp } from "@/lib/form";
 import { products } from "@/data/products";
 import {
   ArrowIcon, WhatsAppIcon, MailIcon, PinIcon, IgIcon, FbIcon, DocumentIcon,
@@ -18,6 +19,8 @@ interface FormState {
   products: string[];
   quantity: string;
   message: string;
+  ruc?: string;
+  industry?: string;
 }
 
 export function Contact() {
@@ -29,6 +32,7 @@ export function Contact() {
     products: [], quantity: "", message: "",
   });
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
 
   const toggleProduct = (p: string) =>
     setForm((f) => ({
@@ -38,21 +42,58 @@ export function Contact() {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const name = cleanField(form.name, LIMITS.name);
+    const phone = cleanField(form.phone, LIMITS.phone);
+    const email = cleanField(form.email, LIMITS.email);
+    const company = cleanField(form.company, LIMITS.company);
+    const ruc = cleanField(form.ruc ?? "", LIMITS.ruc);
+    const quantity = cleanField(form.quantity, LIMITS.quantity);
+    const extra = cleanMultiline(form.message, LIMITS.message);
+
+    if (!name || !phone || !email) {
+      setError("Completa nombre, teléfono y email.");
+      return;
+    }
+
     const productList = form.products.length ? form.products.join(", ") : "—";
-    const text = `Hola Soley, quiero cotizar:
+    let text = `🔵 *COTIZACIÓN - FORMULARIO WEB*\n\n`;
 
-Tipo: ${form.type === "mayoreo" ? "Al Por Mayor / Empresa" : "Al Por Menor / Hogar"}
-Nombre: ${form.name}
-Email: ${form.email}
-Teléfono: ${form.phone}
-${form.company ? `Empresa: ${form.company}\n` : ""}Productos: ${productList}
-Cantidad estimada: ${form.quantity || "—"}
+    text += `👤 *Nombre:* ${name}\n`;
+    text += `📱 *Teléfono:* ${phone}\n`;
+    text += `📧 *Email:* ${email}\n`;
+    text += `🏷️ *Tipo:* ${form.type === "mayoreo" ? "Al Por Mayor / Empresa" : "Al Por Menor / Hogar"}\n`;
 
-${form.message}`;
+    if (company) {
+      text += `🏢 *Empresa:* ${company}\n`;
+    }
+
+    if (form.type === "mayoreo" && ruc) {
+      text += `📄 *RUC:* ${ruc}\n`;
+    }
+
+    if (form.type === "mayoreo" && form.industry) {
+      text += `🏭 *Sector:* ${form.industry}\n`;
+    }
+
+    text += `\n📦 *Productos:* ${productList}\n`;
+    text += `📊 *Cantidad estimada:* ${quantity || "—"}\n`;
+
+    if (extra) {
+      text += `\n💬 *Mensaje adicional:*\n${extra}\n`;
+    }
+
+    text += `\n_Enviado desde soley-page.vercel.app_`;
+
+    const { url, tooLong } = buildWhatsAppUrl("593961264102", text);
+    if (tooLong) {
+      setError("El mensaje es demasiado largo. Acorta el texto o selecciona menos productos.");
+      return;
+    }
+
+    setError("");
     setSent(true);
-    setTimeout(() => {
-      window.open(`https://wa.me/593961264102?text=${encodeURIComponent(text)}`, "_blank");
-    }, 600);
+    setTimeout(() => openWhatsApp(url), 600);
   };
 
   const allProducts = products.map((p) => p.name);
@@ -180,16 +221,68 @@ ${form.message}`;
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-              <Field label="Nombre" value={form.name} onChange={(v) => setForm({ ...form, name: v })} required placeholder="Tu nombre" />
-              <Field label="Teléfono" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} required placeholder="+593..." />
+              <Field label="Nombre" value={form.name} onChange={(v) => setForm({ ...form, name: v })} required placeholder="Tu nombre"
+                maxLength={LIMITS.name} autoComplete="name" />
+              <Field label="Teléfono" type="tel" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} required placeholder="+593..."
+                maxLength={LIMITS.phone} inputMode="tel" autoComplete="tel" />
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: form.type === "mayoreo" ? "1fr 1fr" : "1fr", gap: 14 }}>
-              <Field label="Email" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} required placeholder="tu@email.com" />
+              <Field label="Email" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} required placeholder="tu@email.com"
+                maxLength={LIMITS.email} inputMode="email" autoComplete="email" />
               {form.type === "mayoreo" && (
-                <Field label="Empresa" value={form.company} onChange={(v) => setForm({ ...form, company: v })} placeholder="Nombre de la empresa" />
+                <Field label="Empresa" value={form.company} onChange={(v) => setForm({ ...form, company: v })} placeholder="Nombre de la empresa"
+                  maxLength={LIMITS.company} autoComplete="organization" />
               )}
             </div>
+
+            {form.type === "mayoreo" && (
+              <>
+                <div className="contact-form-section">
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>
+                    Información adicional (opcional)
+                  </div>
+                  <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 14 }}>
+                    Nos ayuda a preparar una propuesta más adecuada para tu empresa
+                  </p>
+
+                  <div className="contact-form-mobile-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+                    <div className="contact-form-field-mobile">
+                      <label style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-2)", textTransform: "uppercase", letterSpacing: "0.06em" }}>RUC</label>
+                      <input
+                        type="text"
+                        value={form.ruc || ""}
+                        onChange={(e) => setForm({ ...form, ruc: e.target.value })}
+                        placeholder="RUC de la empresa"
+                        maxLength={LIMITS.ruc}
+                        inputMode="numeric"
+                        style={fieldStyle}
+                      />
+                    </div>
+
+                    <div className="contact-form-field-mobile">
+                      <label style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-2)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Sector/Industria</label>
+                      <select
+                        value={form.industry || ""}
+                        onChange={(e) => setForm({ ...form, industry: e.target.value })}
+                        style={fieldStyle}
+                      >
+                        <option value="">Seleccionar sector</option>
+                        <option value="hotel">Hotel / Hostal</option>
+                        <option value="restaurante">Restaurante / Cafetería</option>
+                        <option value="clinica">Clínica / Hospital</option>
+                        <option value="lavanderia">Lavandería</option>
+                        <option value="oficina">Oficina / Empresa</option>
+                        <option value="gimnasio">Gimnasio / Spa</option>
+                        <option value="educacion">Educación</option>
+                        <option value="comercio">Comercio</option>
+                        <option value="otro">Otro</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
 
             <div>
               <Label>Productos de interés</Label>
@@ -216,13 +309,23 @@ ${form.message}`;
               value={form.quantity}
               onChange={(v) => setForm({ ...form, quantity: v })}
               placeholder={form.type === "mayoreo" ? "Ej. 10 canecas/mes" : "Ej. 2 galones"}
+              maxLength={LIMITS.quantity}
             />
 
             <div>
               <Label>Mensaje (opcional)</Label>
               <textarea value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })}
-                rows={3} placeholder="Cuéntanos cualquier detalle adicional..." style={fieldStyle} />
+                rows={3} maxLength={LIMITS.message} placeholder="Cuéntanos cualquier detalle adicional..." style={fieldStyle} />
+              <div style={{ fontSize: 11.5, color: "var(--muted-2)", textAlign: "right", marginTop: 4 }}>
+                {form.message.length} / {LIMITS.message}
+              </div>
             </div>
+
+            {error && (
+              <p role="alert" style={{ fontSize: 13, fontWeight: 600, color: "var(--soley-red)", margin: 0 }}>
+                {error}
+              </p>
+            )}
 
             <button type="submit" className="btn btn-lg btn-red" style={{ marginTop: 4 }}>
               {sent ? "Abriendo WhatsApp..." : "Enviar cotización"}
@@ -275,6 +378,50 @@ ${form.message}`;
             justify-content: center;
             padding: 14px;
           }
+
+          /* Contact form mobile improvements */
+          .contact-form-mobile-grid {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+          }
+
+          .contact-form-section {
+            margin-bottom: 20px !important;
+          }
+
+          .contact-form-field-mobile {
+            gap: 6px !important;
+          }
+
+          .contact-form-field-mobile input,
+          .contact-form-field-mobile select {
+            padding: 10px 12px !important;
+            font-size: 14px !important;
+          }
+
+          .contact-form-field-mobile label {
+            font-size: 11px !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .contact-form-mobile-grid {
+            gap: 10px !important;
+          }
+
+          .contact-form-field-mobile input,
+          .contact-form-field-mobile select {
+            padding: 8px 10px !important;
+            font-size: 13px !important;
+          }
+
+          .contact-form-section h4 {
+            font-size: 14px !important;
+          }
+
+          .contact-form-section p {
+            font-size: 12px !important;
+          }
         }
       `}</style>
     </section>
@@ -323,49 +470,22 @@ function ContactItem({ Icon, label, value, href, accent, full }: {
   return <div style={baseStyle}>{inner}</div>;
 }
 
-function SocialFollowBtn({ Icon, label, handle, href, accent }: {
-  Icon: IconCmp; label: string; handle: string; href: string; accent: string;
-}) {
-  return (
-    <a href={href} target="_blank" rel="noopener noreferrer"
-      style={{
-        flex: 1, display: "flex", alignItems: "center", gap: 14,
-        padding: "14px 18px", borderRadius: 16,
-        border: "1px solid var(--border)",
-        textDecoration: "none", color: "inherit",
-        transition: "transform .15s, border-color .2s",
-      }}
-      onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.borderColor = "var(--border-strong)"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "var(--border)"; }}
-    >
-      <div style={{
-        width: 44, height: 44, borderRadius: 14,
-        background: `${accent}15`, color: accent,
-        display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-      }}>
-        <Icon width={20} height={20} />
-      </div>
-      <div>
-        <div style={{ fontSize: 11.5, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</div>
-        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", marginTop: 2 }}>{handle}</div>
-      </div>
-    </a>
-  );
-}
-
 function Label({ children }: { children: React.ReactNode }) {
   return <label style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-2)", textTransform: "uppercase", letterSpacing: "0.06em" }}>{children}</label>;
 }
 
-function Field({ label, value, onChange, type = "text", required, placeholder }: {
+function Field({ label, value, onChange, type = "text", required, placeholder, maxLength, inputMode, autoComplete }: {
   label: string; value: string; onChange: (v: string) => void;
   type?: string; required?: boolean; placeholder?: string;
+  maxLength?: number; inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"]; autoComplete?: string;
 }) {
   return (
     <div>
       <Label>{label}</Label>
       <input type={type} value={value} onChange={(e) => onChange(e.target.value)}
-        required={required} placeholder={placeholder} style={fieldStyle} />
+        required={required} placeholder={placeholder}
+        maxLength={maxLength} inputMode={inputMode} autoComplete={autoComplete}
+        style={fieldStyle} />
     </div>
   );
 }

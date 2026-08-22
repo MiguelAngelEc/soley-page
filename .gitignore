@@ -34,6 +34,9 @@ yarn-error.log*
 # claude agent data
 .claude/
 
+# documentos internos de seguridad: no publicar en un repositorio publico
+PLAN.md
+
 # IDE
 .vscode/
 .idea/

@@ -3,7 +3,6 @@
 import { useRef } from "react";
 import { useReveal, useCountUp, useInView } from "@/lib/hooks";
 import { FlaskIcon, ShieldIcon, TruckIcon } from "@/components/shared/Icons";
-import Image from "next/image";
 
 export function WhySoley() {
   const sectionRef = useRef<HTMLElement | null>(null);
@@ -21,21 +20,18 @@ export function WhySoley() {
       title: "Formulación propia",
       desc: "Fabricamos cada producto en planta propia bajo Buenas Prácticas de Manufactura. Control total sobre concentración, pH y consistencia.",
       tag: "I+D continuo",
-      image: "/IG/card-1.png",
     },
     {
       Icon: ShieldIcon,
       title: "Registro ARCSA",
       desc: "Todos nuestros productos cuentan con notificación sanitaria obligatoria emitida por la Agencia de Regulación Sanitaria del Ecuador.",
       tag: "Cumplimiento legal",
-      image: "/IG/card-2.png",
     },
     {
       Icon: TruckIcon,
       title: "Entrega programada",
       desc: "Logística propia en Imbabura. Coordinamos despachos semanales, quincenales o mensuales según tu consumo.",
       tag: "Sin quiebres de stock",
-      image: "/IG/card-3.png",
     },
   ];
 
@@ -52,17 +48,8 @@ export function WhySoley() {
           {pillars.map((p, i) => (
             <article key={i} className="pillar-card">
               <div className="pillar-card-header">
-                <Image
-                  src={p.image}
-                  alt={p.title}
-                  fill
-                  style={{
-                    objectFit: "contain",
-                    padding: "15px",
-                  }}
-                />
-                <div className="pillar-card-icon">
-                  <p.Icon width={24} height={24} />
+                <div className="pillar-card-icon-container">
+                  <p.Icon className="pillar-card-main-icon" />
                 </div>
               </div>
               <div className="pillar-card-content">
@@ -136,21 +123,27 @@ export function WhySoley() {
           height: 140px;
           background: linear-gradient(135deg, #F7FAFD 0%, #E9F1FB 100%);
           overflow: hidden;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
-        .pillar-card-icon {
-          position: absolute;
-          top: 12px;
-          left: 12px;
-          width: 40px;
-          height: 40px;
-          border-radius: 10px;
+        .pillar-card-icon-container {
+          position: relative;
+          width: 80px;
+          height: 80px;
+          border-radius: 20px;
           background: linear-gradient(135deg, var(--soley-blue) 0%, var(--soley-blue-deep) 100%);
           display: flex;
           align-items: center;
           justify-content: center;
+          box-shadow: 0 8px 32px rgba(30, 91, 186, 0.25);
+        }
+
+        .pillar-card-main-icon {
+          width: 40px;
+          height: 40px;
           color: white;
-          box-shadow: var(--shadow-blue);
         }
 
         .pillar-card-content {
@@ -280,9 +273,12 @@ export function WhySoley() {
             height: 150px;
           }
 
-          .pillar-card-icon {
-            top: 14px;
-            left: 14px;
+          .pillar-card-icon-container {
+            width: 85px;
+            height: 85px;
+          }
+
+          .pillar-card-main-icon {
             width: 44px;
             height: 44px;
           }
@@ -422,12 +418,15 @@ export function WhySoley() {
             height: 160px;
           }
 
-          .pillar-card-icon {
-            top: 16px;
-            left: 16px;
+          .pillar-card-icon-container {
+            width: 90px;
+            height: 90px;
+            border-radius: 24px;
+          }
+
+          .pillar-card-main-icon {
             width: 48px;
             height: 48px;
-            border-radius: 12px;
           }
 
           .pillar-card-content {

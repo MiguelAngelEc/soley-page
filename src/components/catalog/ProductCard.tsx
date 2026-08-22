@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import type { Product, PresentationType } from "@/data/products";
+import { useState, useEffect, useCallback } from "react";
+import type { Product } from "@/data/products";
 import { ArrowIcon } from "@/components/shared/Icons";
 import Image from "next/image";
 
-export function ProductCard({ product, mode, onOpen }: { product: Product; mode: PresentationType; onOpen: () => void }) {
+export function ProductCard({ product, onOpen }: { product: Product; onOpen: () => void }) {
   const [hoverCard, setHoverCard] = useState(false);
   const [hoverImage, setHoverImage] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -16,7 +16,7 @@ export function ProductCard({ product, mode, onOpen }: { product: Product; mode:
   const currentPresentation = allPresentations[currentIndex];
 
   // Función para cambiar de presentación con efecto fade
-  const changePresentation = (newIndex: number) => {
+  const changePresentation = useCallback((newIndex: number) => {
     if (newIndex === currentIndex || isTransitioning) return;
 
     setIsTransitioning(true);
@@ -28,7 +28,7 @@ export function ProductCard({ product, mode, onOpen }: { product: Product; mode:
         setIsTransitioning(false);
       }, 50);
     }, 200);
-  };
+  }, [currentIndex, isTransitioning]);
 
   // Rotación automática constante cada 4 segundos
   useEffect(() => {
@@ -39,7 +39,7 @@ export function ProductCard({ product, mode, onOpen }: { product: Product; mode:
     }, 4000);
 
     return () => clearInterval(interval);
-  }, [currentIndex, isTransitioning, allPresentations.length]);
+  }, [currentIndex, isTransitioning, allPresentations.length, changePresentation]);
 
   return (
     <article

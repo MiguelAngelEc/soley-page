@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, RefObject } from "react";
+import { useEffect, useState, RefObject } from "react";
 
 export function useReveal(ref: RefObject<HTMLElement | null>, threshold = 0.15) {
   useEffect(() => {

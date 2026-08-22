@@ -194,7 +194,7 @@ export function Catalog() {
             }}
           >
             {filtered.map((p) => (
-              <ProductCard key={p.id} product={p} mode={mode} onOpen={() => setModalProduct(p)} />
+              <ProductCard key={p.id} product={p} onOpen={() => setModalProduct(p)} />
             ))}
           </div>
         </div>

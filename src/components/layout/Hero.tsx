@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { products } from "@/data/products";
 import type { Product } from "@/data/products";
-import { ArrowIcon, WhatsAppIcon, DocumentIcon } from "@/components/shared/Icons";
+import { ArrowIcon, WhatsAppIcon } from "@/components/shared/Icons";
+import { WhatsAppModal } from "@/components/shared/WhatsAppModal";
 import Image from "next/image";
 
 interface Slide {
@@ -41,11 +42,12 @@ const slides: Slide[] = [
 export function Hero() {
   const [idx, setIdx] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [whatsappModalOpen, setWhatsappModalOpen] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const slide = slides[idx];
   const featured: Product | null = slide.productId ? products.find((p) => p.id === slide.productId) ?? null : null;
 
-  const changeSlide = (newIdx: number) => {
+  const changeSlide = useCallback((newIdx: number) => {
     if (newIdx === idx || isTransitioning) return;
 
     setIsTransitioning(true);
@@ -57,7 +59,7 @@ export function Hero() {
         setIsTransitioning(false);
       }, 50);
     }, 150);
-  };
+  }, [idx, isTransitioning]);
 
   useEffect(() => {
     const t = setInterval(() => {
@@ -66,7 +68,7 @@ export function Hero() {
       }
     }, 6000);
     return () => clearInterval(t);
-  }, [idx, isTransitioning]);
+  }, [idx, isTransitioning, changeSlide]);
 
   return (
     <section id="inicio" className="hero-section" style={{
@@ -104,10 +106,13 @@ export function Hero() {
 
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 4 }}>
               <a href="#productos" className="btn btn-lg btn-red">Ver catálogo<ArrowIcon width={18} height={18} /></a>
-              <a href="https://wa.me/593961264102" target="_blank" rel="noopener noreferrer" className="btn btn-lg btn-ghost">
+              <button
+                onClick={() => setWhatsappModalOpen(true)}
+                className="btn btn-lg btn-ghost"
+              >
                 <WhatsAppIcon width={18} height={18} style={{ color: "#25D366" }} />
                 Comprar por WhatsApp
-              </a>
+              </button>
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24, marginTop: 32, paddingTop: 28, borderTop: "1px solid var(--border)" }}>
@@ -125,7 +130,7 @@ export function Hero() {
           </div>
 
           <div style={{ position: "relative", height: 560 }}>
-            <HeroShowcase slide={slide} featured={featured} idx={idx} isTransitioning={isTransitioning} />
+            <HeroShowcase slide={slide} featured={featured} isTransitioning={isTransitioning} />
             <div style={{ position: "absolute", bottom: -8, left: "50%", transform: "translateX(-50%)", display: "flex", gap: 8, zIndex: 5 }}>
               {slides.map((_, i) => (
                 <button key={i} onClick={() => changeSlide(i)} aria-label={`Slide ${i + 1}`}
@@ -160,6 +165,11 @@ export function Hero() {
         </div>
       </div>
 
+      <WhatsAppModal
+        isOpen={whatsappModalOpen}
+        onClose={() => setWhatsappModalOpen(false)}
+      />
+
       <style>{`
         .hero-section {
           background: linear-gradient(rgba(255,255,255,0.75), rgba(255,255,255,0.75)), url('/Img-fondo/Img-fondo.png');
@@ -182,7 +192,7 @@ export function Hero() {
   );
 }
 
-function HeroShowcase({ slide, featured, idx, isTransitioning }: { slide: Slide; featured: Product | null; idx: number; isTransitioning: boolean }) {
+function HeroShowcase({ slide, featured, isTransitioning }: { slide: Slide; featured: Product | null; isTransitioning: boolean }) {
   return (
     <div style={{
       position: "absolute",

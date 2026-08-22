@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import type { Product } from "@/data/products";
 import { ProductIllustration } from "./ProductIllustration";
 import { CloseIcon, WhatsAppIcon } from "@/components/shared/Icons";
+import { WhatsAppModal } from "@/components/shared/WhatsAppModal";
 
 export function ProductModal({ product, onClose }: { product: Product; onClose: () => void }) {
+  const [whatsappModalOpen, setWhatsappModalOpen] = useState(false);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", onKey);
@@ -109,14 +112,23 @@ export function ProductModal({ product, onClose }: { product: Product; onClose: 
           </div>
 
           <div style={{ display: "flex", gap: 10, marginTop: "auto", paddingTop: 8 }}>
-            <a href={`https://wa.me/593961264102?text=Hola%2C%20me%20interesa%20cotizar%20${encodeURIComponent(product.name)}`}
-              target="_blank" rel="noopener noreferrer" className="btn btn-red" style={{ flex: 1 }}>
+            <button
+              onClick={() => setWhatsappModalOpen(true)}
+              className="btn btn-red"
+              style={{ flex: 1 }}
+            >
               <WhatsAppIcon width={16} height={16} />Cotizar
-            </a>
+            </button>
             <a href="#contacto" onClick={onClose} className="btn btn-ghost">Formulario</a>
           </div>
         </div>
       </div>
+
+      <WhatsAppModal
+        isOpen={whatsappModalOpen}
+        onClose={() => setWhatsappModalOpen(false)}
+        selectedProduct={product}
+      />
 
       <style jsx>{`
         @media (max-width: 760px) {

@@ -1,0 +1,106 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancela ejecuciones anteriores de la misma rama cuando llega un push nuevo.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    name: Lint, tipos y build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Instalar Node
+        uses: actions/setup-node@v4
+        with:
+          # Alineado con la version que Vercel usa para construir el sitio.
+          node-version: '24'
+          cache: pnpm
+
+      # --frozen-lockfile falla si pnpm-lock.yaml no coincide con package.json:
+      # garantiza que CI resuelve exactamente el mismo arbol que el build local.
+      - name: Instalar dependencias (lock congelado)
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Comprobar tipos
+        run: pnpm exec tsc --noEmit
+
+      - name: Build de produccion
+        run: pnpm build
+
+  auditar:
+    name: Auditoria de dependencias
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Instalar Node
+        uses: actions/setup-node@v4
+        with:
+          # Alineado con la version que Vercel usa para construir el sitio.
+          node-version: '24'
+          cache: pnpm
+
+      - name: Instalar dependencias (lock congelado)
+        run: pnpm install --frozen-lockfile
+
+      # Bloquea el merge: son las dependencias que llegan al sitio publicado.
+      - name: Auditar dependencias de produccion
+        run: pnpm audit --prod
+
+      # Informativo: las de desarrollo no se publican, pero conviene verlas.
+      - name: Auditar todas las dependencias
+        run: pnpm audit
+        continue-on-error: true
+
+  metadatos:
+    name: Metadatos en activos publicos
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar exiftool
+        run: sudo apt-get update && sudo apt-get install -y libimage-exiftool-perl
+
+      # Falla si un activo publicado vuelve a traer autoria, GPS o identificadores
+      # internos de la herramienta de diseno (AUD-004). Reexportar desde Canva los
+      # reintroduce, por eso la comprobacion es automatica.
+      - name: Comprobar que no haya autoria ni identificadores
+        run: |
+          sucios=$(exiftool -r -q -q \
+            -if '$Author or $Creator or $Artist or $CreatorTool or $GPSLatitude or $DocumentID or $InstanceID' \
+            -p '$Directory/$FileName' public || true)
+          if [ -n "$sucios" ]; then
+            echo "::error::Activos publicos con metadatos de autoria o identificadores internos:"
+            echo "$sucios"
+            echo ""
+            echo "Limpiar con:"
+            echo "  exiftool -r -ext png -ext jpg -ext jpeg -ext webp -all= -tagsfromfile @ -ICC_Profile -Orientation -ColorSpace -overwrite_original public"
+            echo "  exiftool -Author= -XMP-dc:Creator= -Producer= -CreatorTool= -PDF:Creator= -overwrite_original <archivo.pdf>"
+            echo "  qpdf --linearize --replace-input <archivo.pdf>"
+            exit 1
+          fi
+          echo "Sin metadatos de autoria en public/."

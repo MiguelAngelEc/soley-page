@@ -1,15 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useId, useRef } from "react";
 import Image from "next/image";
 import { promo } from "@/data/promo";
 import { products } from "@/data/products";
 import { WhatsAppModal } from "@/components/shared/WhatsAppModal";
 import { CloseIcon, WhatsAppIcon, CheckIcon } from "@/components/shared/Icons";
+import { useDialogA11y } from "@/lib/a11y";
 
 export function PromoBanner() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [whatsappOpen, setWhatsappOpen] = useState(false);
+  const titleId = useId();
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useDialogA11y({ isOpen: detailOpen, onClose: () => setDetailOpen(false), containerRef: modalRef });
 
   if (!promo.active) return null;
 
@@ -22,12 +27,17 @@ export function PromoBanner() {
 
   return (
     <>
-      <div className="promo-banner reveal" onClick={() => setDetailOpen(true)}>
-        <div className="promo-media">
-          <div className="promo-seal">
+      <div className="promo-banner reveal">
+        <button
+          type="button"
+          className="promo-media"
+          onClick={() => setDetailOpen(true)}
+          aria-label={`Ver detalle de la oferta: ${promo.headline}`}
+        >
+          <span className="promo-seal">
             <span className="promo-seal-value">{promo.discount}</span>
             <span className="promo-seal-label">Dscto</span>
-          </div>
+          </span>
           <Image
             src={image}
             alt={`${product.name} — ${promo.presentation}`}
@@ -35,7 +45,7 @@ export function PromoBanner() {
             height={232}
             style={{ objectFit: "contain", width: 232, height: "auto" }}
           />
-        </div>
+        </button>
 
         <div className="promo-body">
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -46,7 +56,9 @@ export function PromoBanner() {
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-            <div className="promo-headline">{promo.headline}</div>
+            <button type="button" className="promo-headline promo-headline-btn" onClick={() => setDetailOpen(true)}>
+              {promo.headline}
+            </button>
             <p className="promo-desc">{promo.description}</p>
           </div>
 
@@ -78,7 +90,14 @@ export function PromoBanner() {
 
       {detailOpen && (
         <div className="modal-overlay open" onClick={() => setDetailOpen(false)}>
-          <div className="promo-modal" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="promo-modal"
+            onClick={(e) => e.stopPropagation()}
+            ref={modalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+          >
             <div className="promo-modal-head">
               <button onClick={() => setDetailOpen(false)} className="promo-modal-close" aria-label="Cerrar">
                 <CloseIcon width={15} height={15} />
@@ -86,7 +105,7 @@ export function PromoBanner() {
 
               <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, textAlign: "center" }}>
                 <span className="promo-modal-tag">{promo.eyebrow}</span>
-                <div className="promo-modal-headline">{promo.headline}</div>
+                <h3 id={titleId} className="promo-modal-headline">{promo.headline}</h3>
                 <div style={{ fontSize: 14.5, fontWeight: 600, color: "rgba(255,255,255,0.82)" }}>
                   {product.tagline}
                 </div>
@@ -163,7 +182,6 @@ export function PromoBanner() {
           border: 1px solid var(--border);
           background: white;
           box-shadow: var(--shadow-md);
-          cursor: pointer;
           transition: transform .25s ease, box-shadow .25s ease, border-color .2s;
         }
 
@@ -180,7 +198,14 @@ export function PromoBanner() {
           align-items: center;
           justify-content: center;
           padding: 30px;
+          width: 100%;
+          border: none;
+          appearance: none;
+          font: inherit;
+          cursor: pointer;
         }
+
+        .promo-media:hover { background: linear-gradient(160deg, #E3EEFA 0%, #CCE0F7 100%); }
 
         .promo-seal {
           position: absolute;
@@ -217,6 +242,21 @@ export function PromoBanner() {
           line-height: 1.1;
           text-wrap: balance;
         }
+
+        .promo-headline-btn {
+          background: none;
+          border: none;
+          appearance: none;
+          padding: 0;
+          margin: 0;
+          font: inherit;
+          color: var(--ink);
+          text-align: left;
+          cursor: pointer;
+          width: fit-content;
+        }
+
+        .promo-headline-btn:hover { color: var(--soley-blue-deep); }
 
         .promo-desc {
           font-size: 14.5px;

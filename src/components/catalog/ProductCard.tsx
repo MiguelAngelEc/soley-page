@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import type { Product } from "@/data/products";
 import { ArrowIcon, WhatsAppIcon } from "@/components/shared/Icons";
 import { WhatsAppModal } from "@/components/shared/WhatsAppModal";
+import { useReducedMotionPreference } from "@/lib/a11y";
 import Image from "next/image";
 
 export function ProductCard({ product, onOpen }: { product: Product; onOpen: () => void }) {
@@ -12,6 +13,8 @@ export function ProductCard({ product, onOpen }: { product: Product; onOpen: () 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [quoteOpen, setQuoteOpen] = useState(false);
+  const [autoplayPaused, setAutoplayPaused] = useState(false);
+  const reducedMotion = useReducedMotionPreference();
 
   // Todas las presentaciones disponibles (las 3)
   const allPresentations = product.presentations;
@@ -32,8 +35,11 @@ export function ProductCard({ product, onOpen }: { product: Product; onOpen: () 
     }, 200);
   }, [currentIndex, isTransitioning]);
 
-  // Rotación automática constante cada 4 segundos
+  // Rotación automática cada 4s, salvo que el visitante pida menos movimiento
+  // o este interactuando con la tarjeta (hover o foco por teclado): sin eso
+  // no hay forma de detener el cambio automatico (WCAG 2.2.2).
   useEffect(() => {
+    if (reducedMotion || autoplayPaused) return;
     const interval = setInterval(() => {
       if (!isTransitioning) {
         changePresentation((currentIndex + 1) % allPresentations.length);
@@ -41,12 +47,14 @@ export function ProductCard({ product, onOpen }: { product: Product; onOpen: () 
     }, 4000);
 
     return () => clearInterval(interval);
-  }, [currentIndex, isTransitioning, allPresentations.length, changePresentation]);
+  }, [currentIndex, isTransitioning, allPresentations.length, changePresentation, reducedMotion, autoplayPaused]);
 
   return (
     <article
-      onMouseEnter={() => setHoverCard(true)}
-      onMouseLeave={() => setHoverCard(false)}
+      onMouseEnter={() => { setHoverCard(true); setAutoplayPaused(true); }}
+      onMouseLeave={() => { setHoverCard(false); setAutoplayPaused(false); }}
+      onFocus={() => setAutoplayPaused(true)}
+      onBlur={() => setAutoplayPaused(false)}
       style={{
         background: "white", borderRadius: 24, overflow: "hidden",
         border: "1px solid var(--border)", cursor: "default",
@@ -83,7 +91,9 @@ export function ProductCard({ product, onOpen }: { product: Product; onOpen: () 
         </div>
 
         {/* Contenedor de la imagen con fade */}
-        <div
+        <button
+          type="button"
+          className="product-card-open-btn"
           style={{
             position: "absolute",
             inset: 0,
@@ -94,10 +104,16 @@ export function ProductCard({ product, onOpen }: { product: Product; onOpen: () 
             opacity: isTransitioning ? 0 : 1,
             transition: "opacity 0.2s ease-out",
             cursor: "pointer",
+            background: "none",
+            border: "none",
+            width: "100%",
           }}
           onMouseEnter={() => setHoverImage(true)}
           onMouseLeave={() => setHoverImage(false)}
+          onFocus={() => setHoverImage(true)}
+          onBlur={() => setHoverImage(false)}
           onClick={onOpen}
+          aria-label={`Ver detalle de ${product.name}`}
         >
           <Image
             src={currentPresentation.image}
@@ -131,7 +147,7 @@ export function ProductCard({ product, onOpen }: { product: Product; onOpen: () 
               Ver detalle <ArrowIcon width={16} height={16} />
             </span>
           </div>
-        </div>
+        </button>
 
         {/* Indicadores de presentación */}
         <div style={{
@@ -146,21 +162,27 @@ export function ProductCard({ product, onOpen }: { product: Product; onOpen: () 
           {allPresentations.map((_, index) => (
             <button
               key={index}
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 changePresentation(index);
               }}
               style={{
+                padding: 8, background: "none", border: "none", cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}
+              aria-label={`Ver presentación ${allPresentations[index].volume}`}
+              aria-current={currentIndex === index ? "true" : undefined}
+            >
+              <span style={{
                 width: currentIndex === index ? 24 : 8,
                 height: 8,
                 borderRadius: 999,
                 background: currentIndex === index ? product.color : "rgba(0,0,0,0.2)",
-                border: "none",
                 transition: "all 0.25s",
-                cursor: "pointer",
-              }}
-              aria-label={`Ver presentación ${allPresentations[index].volume}`}
-            />
+                display: "block",
+              }} />
+            </button>
           ))}
         </div>
 

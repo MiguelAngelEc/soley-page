@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { Product } from "@/data/products";
-import { ArrowIcon } from "@/components/shared/Icons";
+import { ArrowIcon, WhatsAppIcon } from "@/components/shared/Icons";
+import { WhatsAppModal } from "@/components/shared/WhatsAppModal";
 import Image from "next/image";
 
 export function ProductCard({ product, onOpen }: { product: Product; onOpen: () => void }) {
@@ -10,6 +11,7 @@ export function ProductCard({ product, onOpen }: { product: Product; onOpen: () 
   const [hoverImage, setHoverImage] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [quoteOpen, setQuoteOpen] = useState(false);
 
   // Todas las presentaciones disponibles (las 3)
   const allPresentations = product.presentations;
@@ -193,26 +195,40 @@ export function ProductCard({ product, onOpen }: { product: Product; onOpen: () 
           <h3 style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em" }}>{product.name}</h3>
         </div>
 
-        {/* Precio dinámico */}
-        <div style={{
-          background: "var(--bg-soft)",
-          padding: "12px 16px",
-          borderRadius: 12,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          opacity: isTransitioning ? 0 : 1,
-          transition: "opacity 0.2s ease-out",
-        }}>
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)", marginBottom: 2 }}>
-              Precio desde
-            </div>
-            <div style={{ fontSize: 24, fontWeight: 800, color: product.color, letterSpacing: "-0.02em" }}>
-              ${currentPresentation.price}
+        {/* Cotización: sustituye al precio hasta tener lista de precios publicable */}
+        <button
+          onClick={() => setQuoteOpen(true)}
+          style={{
+            background: "var(--bg-soft)",
+            padding: "12px 16px",
+            borderRadius: 12,
+            border: "1px solid var(--border)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+            width: "100%",
+            textAlign: "left",
+            opacity: isTransitioning ? 0 : 1,
+            transition: "opacity 0.2s ease-out, border-color 0.2s, background 0.2s",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--border-strong)"; e.currentTarget.style.background = "white"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.background = "var(--bg-soft)"; }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+            <span style={{
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              width: 34, height: 34, borderRadius: 10,
+              background: "#E8F8EE", color: "#16A34A", flexShrink: 0,
+            }}>
+              <WhatsAppIcon width={17} height={17} />
+            </span>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 700, letterSpacing: "-0.01em" }}>Cotiza por WhatsApp</div>
+              <div style={{ fontSize: 11, fontWeight: 500, color: "var(--muted)", marginTop: 1 }}>Respuesta en ~1 hora</div>
             </div>
           </div>
-          <div style={{ textAlign: "right" }}>
+          <div style={{ textAlign: "right", flexShrink: 0 }}>
             <div style={{ fontSize: 10, fontWeight: 600, color: "var(--muted)" }}>
               {currentPresentation.type === "mayoreo" ? "Al Por Mayor" : "Al Por Menor"}
             </div>
@@ -220,9 +236,16 @@ export function ProductCard({ product, onOpen }: { product: Product; onOpen: () 
               {currentPresentation.size}
             </div>
           </div>
-        </div>
+        </button>
 
       </div>
+
+      <WhatsAppModal
+        isOpen={quoteOpen}
+        onClose={() => setQuoteOpen(false)}
+        selectedProduct={product}
+        initialType={currentPresentation.type === "mayoreo" ? "mayoreo" : "hogar"}
+      />
     </article>
   );
 }

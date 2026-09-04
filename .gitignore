@@ -45,6 +45,8 @@ PLAN.md
 
 # env files (can opt-in for committing if needed)
 .env*
+# la plantilla sin secretos si se versiona
+!.env.example
 
 # vercel
 .vercel

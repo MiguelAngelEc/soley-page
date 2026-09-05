@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId, useRef } from "react";
 import { WhatsAppIcon, CloseIcon, ArrowIcon } from "@/components/shared/Icons";
 import { LIMITS, cleanField, cleanMultiline, buildWhatsAppUrl, openWhatsApp } from "@/lib/form";
+import { useDialogA11y } from "@/lib/a11y";
 import type { Product } from "@/data/products";
 
 interface WhatsAppModalProps {
@@ -59,6 +60,26 @@ export function WhatsAppModal({ isOpen, onClose, selectedProduct, initialType }:
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<FormData>(initialForm);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{ name?: string; phone?: string }>({});
+
+  const titleId = useId();
+  const nameErrorId = useId();
+  const phoneErrorId = useId();
+  const nameId = useId();
+  const phoneId = useId();
+  const productId = useId();
+  const quantityId = useId();
+  const companyId = useId();
+  const rucId = useId();
+  const industryId = useId();
+  const volumeId = useId();
+  const messageId = useId();
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const phoneInputRef = useRef<HTMLInputElement>(null);
+
+  useDialogA11y({ isOpen, onClose, containerRef });
 
   // Reinicia el formulario al abrirse, ajustando el estado durante el render en
   // lugar de dentro de un efecto (react-hooks/set-state-in-effect).
@@ -69,6 +90,7 @@ export function WhatsAppModal({ isOpen, onClose, selectedProduct, initialType }:
       setStep(1);
       setFormData(initialForm());
       setError("");
+      setFieldErrors({});
     }
   }
 
@@ -133,8 +155,15 @@ export function WhatsAppModal({ isOpen, onClose, selectedProduct, initialType }:
     e.preventDefault();
     const { message, name, phone } = generateMessage();
 
-    if (!name || !phone) {
-      setError("Completa nombre y teléfono.");
+    const nextFieldErrors: { name?: string; phone?: string } = {};
+    if (!name) nextFieldErrors.name = "Escribe tu nombre.";
+    if (!phone) nextFieldErrors.phone = "Escribe tu teléfono.";
+
+    if (nextFieldErrors.name || nextFieldErrors.phone) {
+      setFieldErrors(nextFieldErrors);
+      setError("");
+      // Lleva el foco al primer campo con error, en el orden en que aparecen.
+      (nextFieldErrors.name ? nameInputRef : phoneInputRef).current?.focus();
       return;
     }
 
@@ -144,6 +173,7 @@ export function WhatsAppModal({ isOpen, onClose, selectedProduct, initialType }:
       return;
     }
 
+    setFieldErrors({});
     setError("");
     openWhatsApp(url);
     onClose();
@@ -153,14 +183,21 @@ export function WhatsAppModal({ isOpen, onClose, selectedProduct, initialType }:
 
   return (
     <div className="modal-overlay open" onClick={onClose}>
-      <div className="whatsapp-modal" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="whatsapp-modal"
+        onClick={(e) => e.stopPropagation()}
+        ref={containerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+      >
         <div className="whatsapp-modal-header">
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div className="whatsapp-icon-wrapper">
               <WhatsAppIcon width={24} height={24} />
             </div>
             <div>
-              <h3 style={{ fontSize: 20, fontWeight: 700, color: "white", margin: 0 }}>
+              <h3 id={titleId} style={{ fontSize: 20, fontWeight: 700, color: "white", margin: 0 }}>
                 Contactar por WhatsApp
               </h3>
               <p style={{ fontSize: 13, color: "rgba(255,255,255,0.9)", margin: "4px 0 0 0" }}>
@@ -168,7 +205,7 @@ export function WhatsAppModal({ isOpen, onClose, selectedProduct, initialType }:
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="modal-close-btn">
+          <button onClick={onClose} className="modal-close-btn" aria-label="Cerrar">
             <CloseIcon width={16} height={16} />
           </button>
         </div>
@@ -216,37 +253,58 @@ export function WhatsAppModal({ isOpen, onClose, selectedProduct, initialType }:
 
                 <div className="form-grid">
                   <div className="form-field">
-                    <label>Nombre *</label>
+                    <label htmlFor={nameId}>Nombre *</label>
                     <input
+                      id={nameId}
+                      ref={nameInputRef}
                       type="text"
                       value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      onChange={(e) => {
+                        setFormData({ ...formData, name: e.target.value });
+                        if (fieldErrors.name) setFieldErrors((f) => ({ ...f, name: undefined }));
+                      }}
                       placeholder="Tu nombre"
                       maxLength={LIMITS.name}
                       autoComplete="name"
                       required
+                      aria-invalid={!!fieldErrors.name}
+                      aria-describedby={fieldErrors.name ? nameErrorId : undefined}
                     />
+                    {fieldErrors.name && (
+                      <p id={nameErrorId} role="alert" className="field-error">{fieldErrors.name}</p>
+                    )}
                   </div>
 
                   <div className="form-field">
-                    <label>Teléfono *</label>
+                    <label htmlFor={phoneId}>Teléfono *</label>
                     <input
+                      id={phoneId}
+                      ref={phoneInputRef}
                       type="tel"
                       value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      onChange={(e) => {
+                        setFormData({ ...formData, phone: e.target.value });
+                        if (fieldErrors.phone) setFieldErrors((f) => ({ ...f, phone: undefined }));
+                      }}
                       placeholder="+593..."
                       maxLength={LIMITS.phone}
                       inputMode="tel"
                       autoComplete="tel"
                       required
+                      aria-invalid={!!fieldErrors.phone}
+                      aria-describedby={fieldErrors.phone ? phoneErrorId : undefined}
                     />
+                    {fieldErrors.phone && (
+                      <p id={phoneErrorId} role="alert" className="field-error">{fieldErrors.phone}</p>
+                    )}
                   </div>
                 </div>
 
                 {formData.queryType !== "otra-consulta" && (
                   <div className="form-field">
-                    <label>Producto de interés</label>
+                    <label htmlFor={productId}>Producto de interés</label>
                     <input
+                      id={productId}
                       type="text"
                       value={formData.product}
                       onChange={(e) => setFormData({ ...formData, product: e.target.value })}
@@ -258,8 +316,9 @@ export function WhatsAppModal({ isOpen, onClose, selectedProduct, initialType }:
 
                 {(formData.queryType === "cotizar-hogar" || formData.queryType === "cotizar-mayoreo") && (
                   <div className="form-field">
-                    <label>Cantidad estimada</label>
+                    <label htmlFor={quantityId}>Cantidad estimada</label>
                     <input
+                      id={quantityId}
                       type="text"
                       value={formData.quantity}
                       onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
@@ -281,8 +340,9 @@ export function WhatsAppModal({ isOpen, onClose, selectedProduct, initialType }:
 
                   <div className="form-grid">
                     <div className="form-field">
-                      <label>Empresa</label>
+                      <label htmlFor={companyId}>Empresa</label>
                       <input
+                        id={companyId}
                         type="text"
                         value={formData.company}
                         onChange={(e) => setFormData({ ...formData, company: e.target.value })}
@@ -293,8 +353,9 @@ export function WhatsAppModal({ isOpen, onClose, selectedProduct, initialType }:
                     </div>
 
                     <div className="form-field">
-                      <label>RUC</label>
+                      <label htmlFor={rucId}>RUC</label>
                       <input
+                        id={rucId}
                         type="text"
                         value={formData.ruc}
                         onChange={(e) => setFormData({ ...formData, ruc: e.target.value })}
@@ -307,8 +368,9 @@ export function WhatsAppModal({ isOpen, onClose, selectedProduct, initialType }:
 
                   <div className="form-grid">
                     <div className="form-field">
-                      <label>Sector</label>
+                      <label htmlFor={industryId}>Sector</label>
                       <select
+                        id={industryId}
                         value={formData.industry}
                         onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
                       >
@@ -320,8 +382,9 @@ export function WhatsAppModal({ isOpen, onClose, selectedProduct, initialType }:
                     </div>
 
                     <div className="form-field">
-                      <label>Volumen mensual</label>
+                      <label htmlFor={volumeId}>Volumen mensual</label>
                       <input
+                        id={volumeId}
                         type="text"
                         value={formData.monthlyVolume}
                         onChange={(e) => setFormData({ ...formData, monthlyVolume: e.target.value })}
@@ -334,8 +397,9 @@ export function WhatsAppModal({ isOpen, onClose, selectedProduct, initialType }:
               )}
 
               <div className="form-field">
-                <label>Mensaje adicional</label>
+                <label htmlFor={messageId}>Mensaje adicional</label>
                 <textarea
+                  id={messageId}
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                   placeholder="Detalles adicionales de tu consulta..."
@@ -532,6 +596,25 @@ export function WhatsAppModal({ isOpen, onClose, selectedProduct, initialType }:
         .form-field select:focus,
         .form-field textarea:focus {
           border-color: #25D366;
+        }
+
+        .form-field input[aria-invalid="true"] {
+          border-color: #dc2626;
+        }
+
+        .field-error {
+          margin: 6px 0 0 0;
+          font-size: 12.5px;
+          font-weight: 600;
+          color: #dc2626;
+          display: flex;
+          align-items: center;
+          gap: 5px;
+        }
+
+        .field-error::before {
+          content: "⚠";
+          font-size: 12px;
         }
 
         .submit-btn {

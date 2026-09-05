@@ -1,27 +1,36 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId, useRef } from "react";
 import type { Product } from "@/data/products";
 import { ProductIllustration } from "./ProductIllustration";
 import { CloseIcon, WhatsAppIcon } from "@/components/shared/Icons";
 import { WhatsAppModal } from "@/components/shared/WhatsAppModal";
+import { useDialogA11y } from "@/lib/a11y";
 
 export function ProductModal({ product, onClose }: { product: Product; onClose: () => void }) {
   const [whatsappModalOpen, setWhatsappModalOpen] = useState(false);
+  const titleId = useId();
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useDialogA11y({ isOpen: true, onClose, containerRef });
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
     return () => {
-      document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
-  }, [onClose]);
+  }, []);
 
   return (
     <div className="modal-overlay open" onClick={onClose}>
-      <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="modal-card"
+        onClick={(e) => e.stopPropagation()}
+        ref={containerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+      >
         <div className="modal-image-section" style={{
           position: "relative",
           background: "linear-gradient(160deg, #F7FAFD 0%, #E2ECF8 100%)",
@@ -56,7 +65,7 @@ export function ProductModal({ product, onClose }: { product: Product; onClose: 
 
           <div>
             <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600, marginBottom: 4 }}>{product.tagline}</div>
-            <h3 style={{ fontSize: 30 }}>{product.name}</h3>
+            <h3 id={titleId} style={{ fontSize: 30 }}>{product.name}</h3>
           </div>
 
           <p style={{ fontSize: 15, lineHeight: 1.6, color: "var(--muted)" }}>{product.description}</p>

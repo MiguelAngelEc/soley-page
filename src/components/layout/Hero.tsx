@@ -5,6 +5,7 @@ import { products } from "@/data/products";
 import type { Product } from "@/data/products";
 import { ArrowIcon, WhatsAppIcon } from "@/components/shared/Icons";
 import { WhatsAppModal } from "@/components/shared/WhatsAppModal";
+import { useReducedMotionPreference } from "@/lib/a11y";
 import Image from "next/image";
 
 interface Slide {
@@ -43,6 +44,8 @@ export function Hero() {
   const [idx, setIdx] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [whatsappModalOpen, setWhatsappModalOpen] = useState(false);
+  const [autoplayPaused, setAutoplayPaused] = useState(false);
+  const reducedMotion = useReducedMotionPreference();
   const contentRef = useRef<HTMLDivElement>(null);
   const slide = slides[idx];
   const featured: Product | null = slide.productId ? products.find((p) => p.id === slide.productId) ?? null : null;
@@ -61,14 +64,18 @@ export function Hero() {
     }, 150);
   }, [idx, isTransitioning]);
 
+  // Pausa el avance automatico si el visitante pidio menos movimiento, o si
+  // esta interactuando con el carrusel (hover o foco por teclado): sin esto,
+  // el contenido cambia solo cada 6s sin forma de detenerlo (WCAG 2.2.2).
   useEffect(() => {
+    if (reducedMotion || autoplayPaused) return;
     const t = setInterval(() => {
       if (!isTransitioning) {
         changeSlide((idx + 1) % slides.length);
       }
     }, 6000);
     return () => clearInterval(t);
-  }, [idx, isTransitioning, changeSlide]);
+  }, [idx, isTransitioning, changeSlide, reducedMotion, autoplayPaused]);
 
   return (
     <section id="inicio" className="hero-section" style={{
@@ -129,16 +136,32 @@ export function Hero() {
             </div>
           </div>
 
-          <div style={{ position: "relative", height: 560 }}>
+          <div
+            style={{ position: "relative", height: 560 }}
+            role="region"
+            aria-roledescription="carrusel"
+            aria-label="Presentación de productos destacados"
+            onMouseEnter={() => setAutoplayPaused(true)}
+            onMouseLeave={() => setAutoplayPaused(false)}
+            onFocus={() => setAutoplayPaused(true)}
+            onBlur={() => setAutoplayPaused(false)}
+          >
             <HeroShowcase slide={slide} featured={featured} isTransitioning={isTransitioning} />
-            <div style={{ position: "absolute", bottom: -8, left: "50%", transform: "translateX(-50%)", display: "flex", gap: 8, zIndex: 5 }}>
+            <div style={{ position: "absolute", bottom: -8, left: "50%", transform: "translateX(-50%)", display: "flex", gap: 4, zIndex: 5 }}>
               {slides.map((_, i) => (
-                <button key={i} onClick={() => changeSlide(i)} aria-label={`Slide ${i + 1}`}
+                <button key={i} type="button" onClick={() => changeSlide(i)}
+                  aria-label={`Ir a la diapositiva ${i + 1} de ${slides.length}`}
+                  aria-current={idx === i ? "true" : undefined}
                   style={{
+                    padding: 7, background: "none", border: "none", cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                  <span style={{
                     width: idx === i ? 32 : 10, height: 10, borderRadius: 999,
                     background: idx === i ? "var(--soley-blue)" : "var(--border-strong)",
-                    transition: "all .25s",
+                    transition: "all .25s", display: "block",
                   }} />
+                </button>
               ))}
             </div>
           </div>

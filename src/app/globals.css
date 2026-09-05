@@ -198,3 +198,32 @@ p { margin: 0; color: var(--muted); }
 ::selection { background: var(--soley-blue); color: white; }
 
 input:focus, textarea:focus { border-color: var(--soley-blue) !important; box-shadow: 0 0 0 4px rgba(30,91,186,0.12) !important; }
+
+/* Red de seguridad de foco visible (WCAG 2.4.7): cubre botones y enlaces
+   personalizados que resetean el estilo nativo del navegador y no traen su
+   propio indicador de foco. */
+button:focus-visible, a:focus-visible, [tabindex]:focus-visible, select:focus-visible {
+  outline: 2px solid var(--soley-blue);
+  outline-offset: 2px;
+}
+
+/* Este boton llena un contenedor con overflow:hidden: un aro hacia afuera
+   quedaria recortado y el foco se veria invisible. */
+.product-card-open-btn:focus-visible {
+  outline-offset: -3px;
+}
+
+/* A11Y-001: respeta la preferencia de menos movimiento del sistema.
+   Detiene animaciones/transiciones en vez de solo acortarlas: los carruseles
+   y el reveal por scroll aparecen ya en su estado final, sin desplazamiento. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, ComponentType, SVGProps } from "react";
+import { useState, useRef, useId, ComponentType, SVGProps } from "react";
 import { useReveal } from "@/lib/hooks";
 import { LIMITS, cleanField, cleanMultiline, buildWhatsAppUrl, openWhatsApp } from "@/lib/form";
 import { products } from "@/data/products";
@@ -33,6 +33,22 @@ export function Contact() {
   });
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{ name?: string; phone?: string; email?: string }>({});
+
+  const nameId = useId();
+  const phoneId = useId();
+  const emailId = useId();
+  const companyId = useId();
+  const rucId = useId();
+  const industryId = useId();
+  const quantityId = useId();
+  const messageId = useId();
+  const productsLabelId = useId();
+  const typeLabelId = useId();
+
+  const nameRef = useRef<HTMLInputElement>(null);
+  const phoneRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
 
   const toggleProduct = (p: string) =>
     setForm((f) => ({
@@ -51,8 +67,18 @@ export function Contact() {
     const quantity = cleanField(form.quantity, LIMITS.quantity);
     const extra = cleanMultiline(form.message, LIMITS.message);
 
-    if (!name || !phone || !email) {
-      setError("Completa nombre, teléfono y email.");
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    const nextFieldErrors: { name?: string; phone?: string; email?: string } = {};
+    if (!name) nextFieldErrors.name = "Escribe tu nombre.";
+    if (!phone) nextFieldErrors.phone = "Escribe tu teléfono.";
+    if (!email) nextFieldErrors.email = "Escribe tu correo.";
+    else if (!EMAIL_RE.test(email)) nextFieldErrors.email = "Revisa el correo: falta el formato usuario@dominio.";
+
+    if (Object.keys(nextFieldErrors).length > 0) {
+      setFieldErrors(nextFieldErrors);
+      setError("");
+      // Lleva el foco al primer campo con error, en el orden en que aparecen.
+      (nextFieldErrors.name ? nameRef : nextFieldErrors.phone ? phoneRef : emailRef).current?.focus();
       return;
     }
 
@@ -91,6 +117,7 @@ export function Contact() {
       return;
     }
 
+    setFieldErrors({});
     setError("");
     setSent(true);
     setTimeout(() => openWhatsApp(url), 600);
@@ -198,8 +225,8 @@ export function Contact() {
               </a>
             </div>
             <div>
-              <Label>Tipo de cotización</Label>
-              <div style={{
+              <Label id={typeLabelId}>Tipo de cotización</Label>
+              <div role="group" aria-labelledby={typeLabelId} style={{
                 display: "grid", gridTemplateColumns: "1fr 1fr",
                 background: "var(--bg-soft)", padding: 4, borderRadius: 999, marginTop: 6,
               }}>
@@ -208,6 +235,7 @@ export function Contact() {
                   { id: "mayoreo", label: "Empresa / Al Por Mayor" },
                 ] as const).map((t) => (
                   <button key={t.id} type="button" onClick={() => setForm({ ...form, type: t.id })}
+                    aria-pressed={form.type === t.id}
                     style={{
                       padding: "10px 14px", borderRadius: 999,
                       fontSize: 13.5, fontWeight: 700,
@@ -221,17 +249,23 @@ export function Contact() {
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-              <Field label="Nombre" value={form.name} onChange={(v) => setForm({ ...form, name: v })} required placeholder="Tu nombre"
+              <Field id={nameId} inputRef={nameRef} label="Nombre" value={form.name}
+                onChange={(v) => { setForm({ ...form, name: v }); if (fieldErrors.name) setFieldErrors((f) => ({ ...f, name: undefined })); }}
+                required placeholder="Tu nombre" error={fieldErrors.name}
                 maxLength={LIMITS.name} autoComplete="name" />
-              <Field label="Teléfono" type="tel" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} required placeholder="+593..."
+              <Field id={phoneId} inputRef={phoneRef} label="Teléfono" type="tel" value={form.phone}
+                onChange={(v) => { setForm({ ...form, phone: v }); if (fieldErrors.phone) setFieldErrors((f) => ({ ...f, phone: undefined })); }}
+                required placeholder="+593..." error={fieldErrors.phone}
                 maxLength={LIMITS.phone} inputMode="tel" autoComplete="tel" />
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: form.type === "mayoreo" ? "1fr 1fr" : "1fr", gap: 14 }}>
-              <Field label="Email" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} required placeholder="tu@email.com"
+              <Field id={emailId} inputRef={emailRef} label="Email" type="email" value={form.email}
+                onChange={(v) => { setForm({ ...form, email: v }); if (fieldErrors.email) setFieldErrors((f) => ({ ...f, email: undefined })); }}
+                required placeholder="tu@email.com" error={fieldErrors.email}
                 maxLength={LIMITS.email} inputMode="email" autoComplete="email" />
               {form.type === "mayoreo" && (
-                <Field label="Empresa" value={form.company} onChange={(v) => setForm({ ...form, company: v })} placeholder="Nombre de la empresa"
+                <Field id={companyId} label="Empresa" value={form.company} onChange={(v) => setForm({ ...form, company: v })} placeholder="Nombre de la empresa"
                   maxLength={LIMITS.company} autoComplete="organization" />
               )}
             </div>
@@ -248,8 +282,9 @@ export function Contact() {
 
                   <div className="contact-form-mobile-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
                     <div className="contact-form-field-mobile">
-                      <label style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-2)", textTransform: "uppercase", letterSpacing: "0.06em" }}>RUC</label>
+                      <label htmlFor={rucId} style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-2)", textTransform: "uppercase", letterSpacing: "0.06em" }}>RUC</label>
                       <input
+                        id={rucId}
                         type="text"
                         value={form.ruc || ""}
                         onChange={(e) => setForm({ ...form, ruc: e.target.value })}
@@ -261,8 +296,9 @@ export function Contact() {
                     </div>
 
                     <div className="contact-form-field-mobile">
-                      <label style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-2)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Sector/Industria</label>
+                      <label htmlFor={industryId} style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-2)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Sector/Industria</label>
                       <select
+                        id={industryId}
                         value={form.industry || ""}
                         onChange={(e) => setForm({ ...form, industry: e.target.value })}
                         style={fieldStyle}
@@ -285,12 +321,13 @@ export function Contact() {
             )}
 
             <div>
-              <Label>Productos de interés</Label>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
+              <Label id={productsLabelId}>Productos de interés</Label>
+              <div role="group" aria-labelledby={productsLabelId} style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
                 {allProducts.map((p) => {
                   const active = form.products.includes(p);
                   return (
                     <button key={p} type="button" onClick={() => toggleProduct(p)}
+                      aria-pressed={active}
                       style={{
                         padding: "8px 14px", borderRadius: 999,
                         fontSize: 12.5, fontWeight: 600,
@@ -305,6 +342,7 @@ export function Contact() {
             </div>
 
             <Field
+              id={quantityId}
               label={form.type === "mayoreo" ? "Volumen estimado / mes" : "Cantidad aproximada"}
               value={form.quantity}
               onChange={(v) => setForm({ ...form, quantity: v })}
@@ -313,8 +351,8 @@ export function Contact() {
             />
 
             <div>
-              <Label>Mensaje (opcional)</Label>
-              <textarea value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })}
+              <Label htmlFor={messageId}>Mensaje (opcional)</Label>
+              <textarea id={messageId} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })}
                 rows={3} maxLength={LIMITS.message} placeholder="Cuéntanos cualquier detalle adicional..." style={fieldStyle} />
               <div style={{ fontSize: 11.5, color: "var(--muted-2)", textAlign: "right", marginTop: 4 }}>
                 {form.message.length} / {LIMITS.message}
@@ -470,22 +508,38 @@ function ContactItem({ Icon, label, value, href, accent, full }: {
   return <div style={baseStyle}>{inner}</div>;
 }
 
-function Label({ children }: { children: React.ReactNode }) {
-  return <label style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-2)", textTransform: "uppercase", letterSpacing: "0.06em" }}>{children}</label>;
+function Label({ children, htmlFor, id }: { children: React.ReactNode; htmlFor?: string; id?: string }) {
+  return (
+    <label htmlFor={htmlFor} id={id} style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-2)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+      {children}
+    </label>
+  );
 }
 
-function Field({ label, value, onChange, type = "text", required, placeholder, maxLength, inputMode, autoComplete }: {
-  label: string; value: string; onChange: (v: string) => void;
+function FieldError({ id, message }: { id: string; message: string }) {
+  return (
+    <p id={id} role="alert" style={{ margin: "6px 0 0 0", fontSize: 12.5, fontWeight: 600, color: "var(--soley-red)", display: "flex", alignItems: "center", gap: 5 }}>
+      <span aria-hidden="true">⚠</span> {message}
+    </p>
+  );
+}
+
+function Field({ id, label, value, onChange, type = "text", required, placeholder, maxLength, inputMode, autoComplete, error, inputRef }: {
+  id: string; label: string; value: string; onChange: (v: string) => void;
   type?: string; required?: boolean; placeholder?: string;
   maxLength?: number; inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"]; autoComplete?: string;
+  error?: string; inputRef?: React.RefObject<HTMLInputElement | null>;
 }) {
+  const errorId = `${id}-error`;
   return (
     <div>
-      <Label>{label}</Label>
-      <input type={type} value={value} onChange={(e) => onChange(e.target.value)}
+      <Label htmlFor={id}>{label}</Label>
+      <input id={id} ref={inputRef} type={type} value={value} onChange={(e) => onChange(e.target.value)}
         required={required} placeholder={placeholder}
         maxLength={maxLength} inputMode={inputMode} autoComplete={autoComplete}
-        style={fieldStyle} />
+        aria-invalid={!!error} aria-describedby={error ? errorId : undefined}
+        style={{ ...fieldStyle, ...(error ? { borderColor: "var(--soley-red)" } : {}) }} />
+      {error && <FieldError id={errorId} message={error} />}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useId } from "react";
 import { useReveal } from "@/lib/hooks";
 import { faqs } from "@/data/faqs";
 import { PlusIcon, WhatsAppIcon } from "@/components/shared/Icons";
@@ -10,6 +10,7 @@ export function FAQ() {
   const [heights, setHeights] = useState<number[]>([]);
   const sectionRef = useRef<HTMLElement | null>(null);
   const contentRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const baseId = useId();
   useReveal(sectionRef);
 
   useEffect(() => {
@@ -34,13 +35,19 @@ export function FAQ() {
         <div className="reveal" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {faqs.map((f, i) => {
             const isOpen = open === i;
+            const buttonId = `${baseId}-btn-${i}`;
+            const panelId = `${baseId}-panel-${i}`;
             return (
               <div key={i} style={{
                 background: isOpen ? "var(--bg-soft)" : "white",
                 border: `1px solid ${isOpen ? "var(--border-strong)" : "var(--border)"}`,
                 borderRadius: 16, overflow: "hidden", transition: "all .2s",
               }}>
-                <button onClick={() => setOpen(isOpen ? -1 : i)}
+                <button
+                  id={buttonId}
+                  onClick={() => setOpen(isOpen ? -1 : i)}
+                  aria-expanded={isOpen}
+                  aria-controls={panelId}
                   style={{
                     width: "100%", padding: "20px 24px",
                     display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -59,11 +66,16 @@ export function FAQ() {
                     <PlusIcon width={16} height={16} />
                   </div>
                 </button>
-                <div style={{
-                  maxHeight: isOpen ? (heights[i] || 400) : 0,
-                  overflow: "hidden",
-                  transition: "max-height .3s cubic-bezier(0.4, 0, 0.2, 1)",
-                }}>
+                <div
+                  id={panelId}
+                  role="region"
+                  aria-labelledby={buttonId}
+                  aria-hidden={!isOpen}
+                  style={{
+                    maxHeight: isOpen ? (heights[i] || 400) : 0,
+                    overflow: "hidden",
+                    transition: "max-height .3s cubic-bezier(0.4, 0, 0.2, 1)",
+                  }}>
                   <div ref={el => {
                     if (el) contentRefs.current[i] = el;
                   }}>

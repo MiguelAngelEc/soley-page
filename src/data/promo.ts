@@ -15,6 +15,17 @@ export interface Promo {
   /** vigencia mostrada al cliente */
   validity: string;
   benefits: string[];
+  /**
+   * Anuncio en video que se abre como modal al entrar a la pagina.
+   * `null` lo desactiva sin tocar el banner del catalogo.
+   * El video se genera con HyperFrames en ../videos/soley-promo-caneca
+   * (ver su README) y se copia a public/promo/.
+   */
+  ad: {
+    video: string;
+    /** fotograma final; se muestra mientras carga y con movimiento reducido */
+    poster: string;
+  } | null;
 }
 
 export const promo: Promo = {
@@ -33,4 +44,8 @@ export const promo: Promo = {
     "Entrega en Ibarra y alrededores",
     "Válido hasta agotar stock",
   ],
+  ad: {
+    video: "/promo/caneca-oferta.mp4",
+    poster: "/promo/caneca-oferta.jpg",
+  },
 };

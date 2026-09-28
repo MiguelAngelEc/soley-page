@@ -9,6 +9,7 @@ import { FAQ } from "@/components/layout/FAQ";
 import { Contact } from "@/components/layout/Contact";
 import { Footer } from "@/components/layout/Footer";
 import { WhatsAppFloat } from "@/components/layout/WhatsAppFloat";
+import { PromoAdModal } from "@/components/shared/PromoAdModal";
 
 export default function Home() {
   return (
@@ -26,6 +27,7 @@ export default function Home() {
       </main>
       <Footer />
       <WhatsAppFloat />
+      <PromoAdModal />
     </>
   );
 }

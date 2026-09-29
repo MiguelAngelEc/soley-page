@@ -182,7 +182,7 @@ export function Hero() {
             <div className="hero-caneca-shadow" aria-hidden="true" />
             <div className="hero-caneca">
               <Image
-                src="/productos/Detergente Caneca 3D.png"
+                src="/productos/Detergente Caneca 3D Angulo.png"
                 alt="Caneca de Detergente Líquido Soley de 20 litros"
                 fill
                 sizes="(max-width: 980px) 90vw, 600px"

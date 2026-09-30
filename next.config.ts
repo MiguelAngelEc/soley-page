@@ -15,7 +15,8 @@ const contentSecurityPolicy = [
   "script-src 'self' 'unsafe-inline'",
   "frame-src https://www.google.com",
   "connect-src 'self'",
-  "upgrade-insecure-requests",
+  // Sin 'upgrade-insecure-requests': en modo Report-Only el navegador la
+  // ignora y solo emite un aviso en consola. Vercel ya sirve todo por HTTPS.
 ].join("; ");
 
 const nextConfig: NextConfig = {

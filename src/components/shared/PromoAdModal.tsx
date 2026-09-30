@@ -1,24 +1,107 @@
 "use client";
 
-import { useState, useId, useRef } from "react";
+import { useState, useId, useRef, useEffect } from "react";
 import { promo } from "@/data/promo";
 import { products } from "@/data/products";
 import { WhatsAppModal } from "@/components/shared/WhatsAppModal";
 import { CloseIcon, WhatsAppIcon } from "@/components/shared/Icons";
 import { useDialogA11y, useReducedMotionPreference } from "@/lib/a11y";
 
+/** Pausa tras cargar la pagina antes de mostrar el anuncio. */
+const OPEN_DELAY_MS = 900;
+/** Si el video tarda, se muestra igual con el poster pasado este tiempo. */
+const VIDEO_WAIT_MS = 2500;
+/** Debe coincidir con la transicion de salida del CSS. */
+const CLOSE_MS = 380;
+
+type Phase = "idle" | "loading" | "open" | "closing" | "done";
+
 /**
- * Anuncio de la promocion del mes: se abre al cargar la pagina con el video
- * generado en HyperFrames. Se configura (o se apaga) desde src/data/promo.ts.
+ * Anuncio de la promocion del mes con el video generado en HyperFrames. Se
+ * configura (o se apaga) desde src/data/promo.ts.
+ *
+ * Para que no aparezca de golpe: espera a que la pagina termine de cargar,
+ * prepara el video oculto y solo entonces entra con un fundido. Mientras esta
+ * abierto, el fondo no se puede desplazar.
  */
 export function PromoAdModal() {
-  const [open, setOpen] = useState(true);
+  const [phase, setPhase] = useState<Phase>("idle");
   const [whatsappOpen, setWhatsappOpen] = useState(false);
   const reducedMotion = useReducedMotionPreference();
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const isOpen = phase === "open";
 
-  useDialogA11y({ isOpen: open, onClose: () => setOpen(false), containerRef: dialogRef });
+  function close() {
+    setPhase((p) => (p === "open" ? "closing" : p));
+  }
+
+  useDialogA11y({ isOpen, onClose: close, containerRef: dialogRef });
+
+  // 1) Tras la carga completa de la pagina, empieza a preparar el anuncio.
+  useEffect(() => {
+    let timer = 0;
+    const start = () => {
+      timer = window.setTimeout(() => setPhase("loading"), OPEN_DELAY_MS);
+    };
+    if (document.readyState === "complete") start();
+    else window.addEventListener("load", start, { once: true });
+    return () => {
+      window.removeEventListener("load", start);
+      window.clearTimeout(timer);
+    };
+  }, []);
+
+  // 2) Se muestra cuando el video puede reproducirse (o al agotar la espera).
+  useEffect(() => {
+    if (phase !== "loading") return;
+    const video = videoRef.current;
+    const show = () => setPhase((p) => (p === "loading" ? "open" : p));
+    if (reducedMotion || !video) {
+      show();
+      return;
+    }
+    if (video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) show();
+    video.addEventListener("canplay", show, { once: true });
+    const fallback = window.setTimeout(show, VIDEO_WAIT_MS);
+    return () => {
+      video.removeEventListener("canplay", show);
+      window.clearTimeout(fallback);
+    };
+  }, [phase, reducedMotion]);
+
+  // Arranca el video desde el principio justo cuando el anuncio entra.
+  useEffect(() => {
+    if (!isOpen || reducedMotion) return;
+    const video = videoRef.current;
+    if (!video) return;
+    video.currentTime = 0;
+    void video.play().catch(() => {});
+  }, [isOpen, reducedMotion]);
+
+  // 3) Salida suave: se desmonta cuando termina la transicion.
+  useEffect(() => {
+    if (phase !== "closing") return;
+    const t = window.setTimeout(() => setPhase("done"), CLOSE_MS);
+    return () => window.clearTimeout(t);
+  }, [phase]);
+
+  // Bloquea el desplazamiento de la pagina mientras el anuncio esta abierto,
+  // compensando el ancho de la barra de scroll para que nada se mueva.
+  useEffect(() => {
+    if (!isOpen) return;
+    const html = document.documentElement;
+    const body = document.body;
+    const scrollbar = window.innerWidth - html.clientWidth;
+    const prev = { overflow: html.style.overflow, paddingRight: body.style.paddingRight };
+    html.style.overflow = "hidden";
+    if (scrollbar > 0) body.style.paddingRight = `${scrollbar}px`;
+    return () => {
+      html.style.overflow = prev.overflow;
+      body.style.paddingRight = prev.paddingRight;
+    };
+  }, [isOpen]);
 
   const product = products.find((p) => p.id === promo.productId);
   if (!promo.active || !promo.ad || !product) return null;
@@ -26,8 +109,12 @@ export function PromoAdModal() {
 
   return (
     <>
-      {open && (
-        <div className="modal-overlay open ad-overlay" onClick={() => setOpen(false)}>
+      {(phase === "loading" || phase === "open" || phase === "closing") && (
+        <div
+          className={`modal-overlay ad-overlay${isOpen ? " open" : ""}`}
+          onClick={close}
+          aria-hidden={!isOpen}
+        >
           <div
             ref={dialogRef}
             className="ad-card"
@@ -36,7 +123,7 @@ export function PromoAdModal() {
             aria-labelledby={titleId}
             onClick={(e) => e.stopPropagation()}
           >
-            <button type="button" className="ad-close" onClick={() => setOpen(false)} aria-label="Cerrar anuncio">
+            <button type="button" className="ad-close" onClick={close} aria-label="Cerrar anuncio">
               <CloseIcon width={16} height={16} />
             </button>
 
@@ -46,10 +133,10 @@ export function PromoAdModal() {
 
             {/* Con movimiento reducido no se reproduce solo: queda el poster y controles. */}
             <video
+              ref={videoRef}
               className="ad-video"
               src={video}
               poster={poster}
-              autoPlay={!reducedMotion}
               muted
               loop
               playsInline
@@ -63,14 +150,14 @@ export function PromoAdModal() {
                 type="button"
                 className="btn btn-blue ad-cta"
                 onClick={() => {
-                  setOpen(false);
+                  close();
                   setWhatsappOpen(true);
                 }}
               >
                 <WhatsAppIcon width={18} height={18} />
                 Pide el tuyo hoy
               </button>
-              <button type="button" className="ad-skip" onClick={() => setOpen(false)}>
+              <button type="button" className="ad-skip" onClick={close}>
                 Ver la página
               </button>
             </div>
@@ -81,8 +168,12 @@ export function PromoAdModal() {
       <WhatsAppModal isOpen={whatsappOpen} onClose={() => setWhatsappOpen(false)} selectedProduct={product} />
 
       <style jsx>{`
+        /* Entrada y salida suaves: el fondo se oscurece y la tarjeta sube un
+           poco mientras aparece, sin rebotes. */
         .ad-overlay {
           z-index: 200;
+          overscroll-behavior: contain;
+          transition: opacity 0.38s ease;
         }
         .ad-card {
           position: relative;
@@ -93,11 +184,20 @@ export function PromoAdModal() {
           overflow: hidden;
           background: white;
           box-shadow: var(--shadow-lg);
-          animation: ad-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+          opacity: 0;
+          transform: translateY(24px) scale(0.97);
+          transition: opacity 0.38s ease, transform 0.38s ease;
         }
-        @keyframes ad-in {
-          from { transform: scale(0.9); opacity: 0; }
-          to { transform: scale(1); opacity: 1; }
+        .ad-overlay.open .ad-card {
+          opacity: 1;
+          transform: none;
+          transition: opacity 0.5s ease 0.08s, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.08s;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .ad-card,
+          .ad-overlay.open .ad-card {
+            transform: none;
+          }
         }
         .ad-video {
           display: block;

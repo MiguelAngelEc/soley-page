@@ -252,7 +252,7 @@ export function ProductCard({ product, onOpen }: { product: Product; onOpen: () 
           </div>
           <div style={{ textAlign: "right", flexShrink: 0 }}>
             <div style={{ fontSize: 10, fontWeight: 600, color: "var(--muted)" }}>
-              {currentPresentation.type === "mayoreo" ? "Al Por Mayor" : "Al Por Menor"}
+              {currentPresentation.type === "mayoreo" ? "Al por mayor" : "Al por menor"}
             </div>
             <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink)", marginTop: 2 }}>
               {currentPresentation.size}

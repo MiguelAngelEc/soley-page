@@ -100,7 +100,7 @@ export function ProductModal({ product, onClose }: { product: Product; onClose: 
                     color: p.type === "mayoreo" ? "var(--soley-red)" : "var(--soley-blue)",
                     padding: "4px 10px", borderRadius: 999,
                     background: p.type === "mayoreo" ? "rgba(225,29,46,0.08)" : "var(--bg-blue-tint)",
-                  }}>{p.type}</span>
+                  }}>{p.type === "mayoreo" ? "Al por mayor" : "Al por menor"}</span>
                 </div>
               ))}
             </div>

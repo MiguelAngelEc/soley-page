@@ -88,7 +88,7 @@ export function Contact() {
     text += `👤 *Nombre:* ${name}\n`;
     text += `📱 *Teléfono:* ${phone}\n`;
     text += `📧 *Email:* ${email}\n`;
-    text += `🏷️ *Tipo:* ${form.type === "mayoreo" ? "Al Por Mayor / Empresa" : "Al Por Menor / Hogar"}\n`;
+    text += `🏷️ *Tipo:* ${form.type === "mayoreo" ? "Al por mayor / Empresa" : "Al por menor / Hogar"}\n`;
 
     if (company) {
       text += `🏢 *Empresa:* ${company}\n`;
@@ -232,7 +232,7 @@ export function Contact() {
               }}>
                 {([
                   { id: "menudeo", label: "Hogar" },
-                  { id: "mayoreo", label: "Empresa / Al Por Mayor" },
+                  { id: "mayoreo", label: "Empresa / Al por mayor" },
                 ] as const).map((t) => (
                   <button key={t.id} type="button" onClick={() => setForm({ ...form, type: t.id })}
                     aria-pressed={form.type === t.id}

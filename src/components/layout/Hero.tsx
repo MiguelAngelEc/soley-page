@@ -13,6 +13,17 @@ interface Slide {
   desc: string;
 }
 
+// Compromisos que el propio sitio respalda (sin clientes ni cifras inventadas).
+const commitments = [
+  "Fabricado en Ecuador",
+  "Registro sanitario ARCSA",
+  "Más de 10 años fabricando",
+  "Fórmulas concentradas de alto rendimiento",
+  "Presentaciones de 1 L, 4 L y 20 L",
+  "Al por mayor y al por menor",
+  "Atención directa por WhatsApp",
+];
+
 const slides: Slide[] = [
   {
     eyebrow: "Detergente Líquido",
@@ -200,16 +211,12 @@ export function Hero() {
       <div style={{ borderTop: "1px solid var(--border)", background: "var(--bg-soft)" }}>
         <div className="container-x" style={{ padding: "20px 24px", display: "flex", alignItems: "center", gap: 32, overflow: "hidden" }}>
           <span style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", letterSpacing: "0.08em", textTransform: "uppercase", flexShrink: 0 }}>
-            Confían en nosotros
+            Nuestro compromiso
           </span>
           <div style={{ overflow: "hidden", flex: 1, maskImage: "linear-gradient(90deg, transparent, black 10%, black 90%, transparent)", WebkitMaskImage: "linear-gradient(90deg, transparent, black 10%, black 90%, transparent)" }}>
             <div style={{ display: "flex", gap: 56, animation: "marquee 30s linear infinite", width: "fit-content" }}>
-              {[
-                "Hotel Quito", "Hotel Imperial", "Restaurant La Casona", "Hostería El Prado",
-                "Comercial Andina", "Lavandería Express", "Clínica Ibarra", "Resort San Antonio",
-                "Hotel Quito", "Hotel Imperial", "Restaurant La Casona", "Hostería El Prado",
-                "Comercial Andina", "Lavandería Express", "Clínica Ibarra", "Resort San Antonio",
-              ].map((n, i) => (
+              {/* La lista va dos veces para que la animacion en bucle no tenga corte. */}
+              {[...commitments, ...commitments].map((n, i) => (
                 <span key={i} style={{ fontSize: 16, fontWeight: 700, color: "var(--muted-2)", whiteSpace: "nowrap" }}>{n}</span>
               ))}
             </div>

@@ -98,8 +98,8 @@ export function Catalog() {
               }}
             />
             {([
-              { id: "menudeo", label: "Al Por Menor · Hogar" },
-              { id: "mayoreo", label: "Al Por Mayor · Empresas" },
+              { id: "menudeo", label: "Venta al público" },
+              { id: "mayoreo", label: "Al por mayor · Empresas" },
             ] as const).map((m) => (
               <button key={m.id} onClick={() => setMode(m.id)}
                 style={{

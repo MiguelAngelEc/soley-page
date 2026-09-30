@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect, useId, useRef } from "react";
-import { WhatsAppIcon, CloseIcon, ArrowIcon } from "@/components/shared/Icons";
+import { WhatsAppIcon, CloseIcon, ArrowIcon, HomeIcon, FactoryIcon, TruckIcon } from "@/components/shared/Icons";
 import { LIMITS, cleanField, cleanMultiline, buildWhatsAppUrl, openWhatsApp } from "@/lib/form";
 import { useDialogA11y } from "@/lib/a11y";
 import type { Product } from "@/data/products";
+
+type ClientType = "hogar" | "mayoreo" | "distribuidor";
 
 interface WhatsAppModalProps {
   isOpen: boolean;
@@ -14,43 +16,43 @@ interface WhatsAppModalProps {
 }
 
 interface FormData {
-  queryType: string;
-  clientType: "hogar" | "mayoreo";
+  clientType: ClientType;
   name: string;
   phone: string;
   product?: string;
   quantity?: string;
   company?: string;
   ruc?: string;
-  industry?: string;
-  monthlyVolume?: string;
+  city?: string;
   message?: string;
 }
 
 const queryOptions = [
-  { id: "cotizar-hogar", label: "Cotizar para mi hogar", icon: "🏠", clientType: "hogar" as const },
-  { id: "cotizar-mayoreo", label: "Cotizar al por mayor", icon: "🏢", clientType: "mayoreo" as const },
-  { id: "info-producto", label: "Información de producto", icon: "📋", clientType: "hogar" as const },
-  { id: "visita-comercial", label: "Agendar visita comercial", icon: "📅", clientType: "mayoreo" as const },
-  { id: "disponibilidad", label: "Consultar disponibilidad", icon: "✅", clientType: "hogar" as const },
-  { id: "otra-consulta", label: "Otra consulta", icon: "💬", clientType: "hogar" as const },
-];
-
-const industries = [
-  "Hotel / Hostal",
-  "Restaurante / Cafetería",
-  "Clínica / Hospital",
-  "Lavandería",
-  "Oficina / Empresa",
-  "Gimnasio / Spa",
-  "Educación",
-  "Comercio",
-  "Otro"
+  {
+    id: "hogar" as const,
+    title: "Para mi hogar",
+    description: "Compra productos para tu casa",
+    messageTitle: "COTIZACIÓN PARA HOGAR",
+    Icon: HomeIcon,
+  },
+  {
+    id: "mayoreo" as const,
+    title: "Al por mayor",
+    description: "Precios especiales para negocios y empresas",
+    messageTitle: "COTIZACIÓN AL POR MAYOR",
+    Icon: FactoryIcon,
+  },
+  {
+    id: "distribuidor" as const,
+    title: "Ser distribuidor",
+    description: "Vende productos Soley en tu zona",
+    messageTitle: "QUIERO SER DISTRIBUIDOR",
+    Icon: TruckIcon,
+  },
 ];
 
 export function WhatsAppModal({ isOpen, onClose, selectedProduct, initialType }: WhatsAppModalProps) {
   const initialForm = (): FormData => ({
-    queryType: selectedProduct ? "info-producto" : "",
     clientType: initialType || "hogar",
     name: "",
     phone: "",
@@ -71,8 +73,7 @@ export function WhatsAppModal({ isOpen, onClose, selectedProduct, initialType }:
   const quantityId = useId();
   const companyId = useId();
   const rucId = useId();
-  const industryId = useId();
-  const volumeId = useId();
+  const cityId = useId();
   const messageId = useId();
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -103,43 +104,39 @@ export function WhatsAppModal({ isOpen, onClose, selectedProduct, initialType }:
     };
   }, [isOpen]);
 
-  const handleQuerySelect = (option: typeof queryOptions[0]) => {
-    setFormData({ ...formData, queryType: option.id, clientType: option.clientType });
+  const selectedOption = queryOptions.find((q) => q.id === formData.clientType) ?? queryOptions[0];
+  const isDistributor = formData.clientType === "distribuidor";
+
+  const handleQuerySelect = (clientType: ClientType) => {
+    setFormData({ ...formData, clientType });
     setStep(2);
   };
 
   const generateMessage = () => {
-    const selectedQuery = queryOptions.find(q => q.id === formData.queryType);
     const name = cleanField(formData.name, LIMITS.name);
     const phone = cleanField(formData.phone, LIMITS.phone);
     const company = cleanField(formData.company ?? "", LIMITS.company);
     const ruc = cleanField(formData.ruc ?? "", LIMITS.ruc);
+    const city = cleanField(formData.city ?? "", LIMITS.city);
     const product = cleanField(formData.product ?? "", LIMITS.product);
     const quantity = cleanField(formData.quantity ?? "", LIMITS.quantity);
-    const monthlyVolume = cleanField(formData.monthlyVolume ?? "", LIMITS.quantity);
     const extra = cleanMultiline(formData.message ?? "", LIMITS.message);
 
-    let message = `🔵 *${selectedQuery?.label.toUpperCase()}*\n\n`;
+    let message = `🔵 *${selectedOption.messageTitle}*\n\n`;
 
     message += `👤 *Nombre:* ${name}\n`;
     message += `📱 *Teléfono:* ${phone}\n`;
 
-    if (formData.clientType === "mayoreo" && company) {
-      message += `🏢 *Empresa:* ${company}\n`;
-      if (ruc) message += `📄 *RUC:* ${ruc}\n`;
-      if (formData.industry) message += `🏭 *Sector:* ${formData.industry}\n`;
-    }
+    if (formData.clientType !== "hogar" && company) message += `🏢 *Empresa:* ${company}\n`;
+    if (isDistributor && ruc) message += `📄 *RUC:* ${ruc}\n`;
+    if (isDistributor && city) message += `📍 *Ciudad / zona:* ${city}\n`;
 
-    if (product) {
+    if (!isDistributor && product) {
       message += `\n📦 *Producto de interés:* ${product}\n`;
     }
 
-    if (quantity) {
+    if (!isDistributor && quantity) {
       message += `📊 *Cantidad estimada:* ${quantity}\n`;
-    }
-
-    if (formData.clientType === "mayoreo" && monthlyVolume) {
-      message += `📈 *Volumen mensual estimado:* ${monthlyVolume}\n`;
     }
 
     if (extra) {
@@ -213,23 +210,29 @@ export function WhatsAppModal({ isOpen, onClose, selectedProduct, initialType }:
         <div className="whatsapp-modal-body">
           {step === 1 && (
             <div className="query-selection">
-              <h4 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>
-                ¿Cómo podemos ayudarte?
+              <h4 style={{ fontSize: 18, fontWeight: 800, marginBottom: 4, color: "var(--ink)" }}>
+                ¿Para quién es tu consulta?
               </h4>
               <p style={{ fontSize: 14, color: "var(--muted)", marginBottom: 20 }}>
-                Selecciona el tipo de consulta para brindarte mejor atención
+                Elige una opción y te atendemos directo por WhatsApp
               </p>
 
               <div className="query-options">
-                {queryOptions.map((option) => (
+                {queryOptions.map(({ id, title, description, Icon }) => (
                   <button
-                    key={option.id}
-                    onClick={() => handleQuerySelect(option)}
-                    className="query-option-btn"
+                    key={id}
+                    type="button"
+                    onClick={() => handleQuerySelect(id)}
+                    className={`query-option-btn is-${id}`}
                   >
-                    <span className="query-icon">{option.icon}</span>
-                    <span>{option.label}</span>
-                    <ArrowIcon width={16} height={16} style={{ marginLeft: "auto", color: "var(--muted)" }} />
+                    <span className="query-icon">
+                      <Icon width={24} height={24} />
+                    </span>
+                    <span className="query-text">
+                      <span className="query-title">{title}</span>
+                      <span className="query-desc">{description}</span>
+                    </span>
+                    <ArrowIcon width={18} height={18} className="query-arrow" />
                   </button>
                 ))}
               </div>
@@ -238,18 +241,17 @@ export function WhatsAppModal({ isOpen, onClose, selectedProduct, initialType }:
 
           {step === 2 && (
             <form onSubmit={handleSubmit} className="whatsapp-form">
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="back-btn"
-              >
-                ← Cambiar tipo de consulta
-              </button>
+              <div className={`selected-chip is-${selectedOption.id}`}>
+                <span className="query-icon">
+                  <selectedOption.Icon width={20} height={20} />
+                </span>
+                <span className="query-title">{selectedOption.title}</span>
+                <button type="button" onClick={() => setStep(1)} className="back-btn">
+                  Cambiar
+                </button>
+              </div>
 
               <div className="form-section">
-                <h4 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>
-                  Información básica
-                </h4>
 
                 <div className="form-grid">
                   <div className="form-field">
@@ -300,109 +302,102 @@ export function WhatsAppModal({ isOpen, onClose, selectedProduct, initialType }:
                   </div>
                 </div>
 
-                {formData.queryType !== "otra-consulta" && (
+                {formData.clientType === "mayoreo" && (
                   <div className="form-field">
-                    <label htmlFor={productId}>Producto de interés</label>
+                    <label htmlFor={companyId}>Negocio o empresa <span className="optional">(opcional)</span></label>
                     <input
-                      id={productId}
+                      id={companyId}
                       type="text"
-                      value={formData.product}
-                      onChange={(e) => setFormData({ ...formData, product: e.target.value })}
-                      placeholder="Ej: Detergente líquido, Cloro..."
-                      maxLength={LIMITS.product}
+                      value={formData.company ?? ""}
+                      onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                      placeholder="Ej: Hotel Las Palmas"
+                      maxLength={LIMITS.company}
+                      autoComplete="organization"
                     />
                   </div>
                 )}
 
-                {(formData.queryType === "cotizar-hogar" || formData.queryType === "cotizar-mayoreo") && (
-                  <div className="form-field">
-                    <label htmlFor={quantityId}>Cantidad estimada</label>
-                    <input
-                      id={quantityId}
-                      type="text"
-                      value={formData.quantity}
-                      onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                      placeholder={formData.clientType === "mayoreo" ? "Ej: 10 canecas" : "Ej: 2 galones"}
-                      maxLength={LIMITS.quantity}
-                    />
-                  </div>
+                {isDistributor && (
+                  <>
+                    <div className="form-grid">
+                      <div className="form-field">
+                        <label htmlFor={companyId}>Empresa <span className="optional">(opcional)</span></label>
+                        <input
+                          id={companyId}
+                          type="text"
+                          value={formData.company ?? ""}
+                          onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                          placeholder="Nombre comercial"
+                          maxLength={LIMITS.company}
+                          autoComplete="organization"
+                        />
+                      </div>
+
+                      <div className="form-field">
+                        <label htmlFor={rucId}>RUC <span className="optional">(opcional)</span></label>
+                        <input
+                          id={rucId}
+                          type="text"
+                          value={formData.ruc ?? ""}
+                          onChange={(e) => setFormData({ ...formData, ruc: e.target.value })}
+                          placeholder="RUC"
+                          maxLength={LIMITS.ruc}
+                          inputMode="numeric"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-field">
+                      <label htmlFor={cityId}>Ciudad o zona donde distribuirías</label>
+                      <input
+                        id={cityId}
+                        type="text"
+                        value={formData.city ?? ""}
+                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                        placeholder="Ej: Guayaquil, sector norte"
+                        maxLength={LIMITS.city}
+                        autoComplete="address-level2"
+                      />
+                    </div>
+                  </>
                 )}
-              </div>
 
-              {formData.clientType === "mayoreo" && (
-                <div className="form-section">
-                  <h4 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>
-                    Información empresarial
-                  </h4>
-                  <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 16 }}>
-                    Opcional - Nos ayuda a preparar una mejor propuesta
-                  </p>
-
+                {!isDistributor && (
                   <div className="form-grid">
                     <div className="form-field">
-                      <label htmlFor={companyId}>Empresa</label>
+                      <label htmlFor={productId}>Producto de interés</label>
                       <input
-                        id={companyId}
+                        id={productId}
                         type="text"
-                        value={formData.company}
-                        onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                        placeholder="Nombre de la empresa"
-                        maxLength={LIMITS.company}
-                        autoComplete="organization"
+                        value={formData.product ?? ""}
+                        onChange={(e) => setFormData({ ...formData, product: e.target.value })}
+                        placeholder="Ej: Detergente, Cloro..."
+                        maxLength={LIMITS.product}
                       />
                     </div>
 
                     <div className="form-field">
-                      <label htmlFor={rucId}>RUC</label>
+                      <label htmlFor={quantityId}>Cantidad</label>
                       <input
-                        id={rucId}
+                        id={quantityId}
                         type="text"
-                        value={formData.ruc}
-                        onChange={(e) => setFormData({ ...formData, ruc: e.target.value })}
-                        placeholder="RUC de la empresa"
-                        maxLength={LIMITS.ruc}
-                        inputMode="numeric"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="form-grid">
-                    <div className="form-field">
-                      <label htmlFor={industryId}>Sector</label>
-                      <select
-                        id={industryId}
-                        value={formData.industry}
-                        onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
-                      >
-                        <option value="">Seleccionar sector</option>
-                        {industries.map((ind) => (
-                          <option key={ind} value={ind}>{ind}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="form-field">
-                      <label htmlFor={volumeId}>Volumen mensual</label>
-                      <input
-                        id={volumeId}
-                        type="text"
-                        value={formData.monthlyVolume}
-                        onChange={(e) => setFormData({ ...formData, monthlyVolume: e.target.value })}
-                        placeholder="Ej: 20 canecas/mes"
+                        value={formData.quantity ?? ""}
+                        onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                        placeholder={formData.clientType === "mayoreo" ? "Ej: 10 canecas" : "Ej: 2 galones"}
                         maxLength={LIMITS.quantity}
                       />
                     </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
 
               <div className="form-field">
-                <label htmlFor={messageId}>Mensaje adicional</label>
+                <label htmlFor={messageId}>Mensaje <span className="optional">(opcional)</span></label>
                 <textarea
                   id={messageId}
-                  value={formData.message}
+                  value={formData.message ?? ""}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                  placeholder="Detalles adicionales de tu consulta..."
+                  placeholder={isDistributor ? "Cuéntanos sobre tu negocio o experiencia vendiendo..." : "¿Algo más que debamos saber?"}
                   rows={3}
                   maxLength={LIMITS.message}
                 />
@@ -493,35 +488,106 @@ export function WhatsAppModal({ isOpen, onClose, selectedProduct, initialType }:
         .query-options {
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: 12px;
         }
+
+        .is-hogar { --accent: var(--soley-blue); --accent-soft: var(--bg-blue-tint); }
+        .is-mayoreo { --accent: #128C7E; --accent-soft: #E7F8EF; }
+        .is-distribuidor { --accent: var(--soley-red); --accent-soft: #FDECEE; }
 
         .query-option-btn {
           display: flex;
           align-items: center;
-          gap: 12px;
-          padding: 16px 18px;
+          gap: 16px;
+          padding: 18px 20px;
           background: white;
           border: 1.5px solid var(--border);
-          border-radius: 12px;
-          font-size: 14px;
-          font-weight: 600;
+          border-radius: 16px;
           color: var(--ink);
           cursor: pointer;
-          transition: all 0.2s;
+          transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
           text-align: left;
+          animation: fadeIn 0.35s ease backwards;
         }
 
-        .query-option-btn:hover {
-          border-color: #25D366;
-          background: #f0fdf4;
-          transform: translateX(4px);
+        .query-option-btn:nth-child(2) { animation-delay: 0.05s; }
+        .query-option-btn:nth-child(3) { animation-delay: 0.1s; }
+
+        .query-option-btn:hover,
+        .query-option-btn:focus-visible {
+          border-color: var(--accent);
+          box-shadow: 0 10px 24px rgba(11, 23, 54, 0.08);
+          transform: translateY(-2px);
+          outline: none;
         }
 
         .query-icon {
-          font-size: 20px;
-          width: 32px;
-          text-align: center;
+          flex-shrink: 0;
+          width: 48px;
+          height: 48px;
+          border-radius: 14px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: var(--accent-soft);
+          color: var(--accent);
+        }
+
+        .query-text {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          min-width: 0;
+        }
+
+        .query-title {
+          font-size: 15.5px;
+          font-weight: 700;
+          color: var(--ink);
+        }
+
+        .query-desc {
+          font-size: 13px;
+          color: var(--muted);
+        }
+
+        .query-option-btn :global(.query-arrow) {
+          margin-left: auto;
+          flex-shrink: 0;
+          color: var(--muted-2);
+          transition: color 0.2s, transform 0.2s;
+        }
+
+        .query-option-btn:hover :global(.query-arrow) {
+          color: var(--accent);
+          transform: translateX(3px);
+        }
+
+        .selected-chip {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 10px 12px;
+          margin-bottom: 20px;
+          background: var(--accent-soft);
+          border-radius: 14px;
+        }
+
+        .selected-chip .query-icon {
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+          background: white;
+        }
+
+        .selected-chip .back-btn {
+          margin: 0 0 0 auto;
+          background: white;
+        }
+
+        .optional {
+          font-weight: 500;
+          color: var(--muted-2);
         }
 
         .whatsapp-form {
@@ -550,7 +616,10 @@ export function WhatsAppModal({ isOpen, onClose, selectedProduct, initialType }:
         }
 
         .form-section {
-          margin-bottom: 24px;
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+          margin-bottom: 14px;
         }
 
         .form-section:last-child {
@@ -667,18 +736,19 @@ export function WhatsAppModal({ isOpen, onClose, selectedProduct, initialType }:
           }
 
           .query-options {
-            gap: 6px;
+            gap: 10px;
           }
 
           .query-option-btn {
-            padding: 12px 14px;
-            font-size: 13px;
-            border-radius: 10px;
+            padding: 14px 16px;
+            gap: 14px;
+            border-radius: 14px;
           }
 
-          .query-icon {
-            font-size: 18px;
-            width: 28px;
+          .query-option-btn .query-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
           }
 
           .form-field input,
@@ -699,7 +769,7 @@ export function WhatsAppModal({ isOpen, onClose, selectedProduct, initialType }:
           }
 
           .form-section {
-            margin-bottom: 20px;
+            gap: 12px;
           }
 
           .whatsapp-icon-wrapper {
@@ -728,13 +798,16 @@ export function WhatsAppModal({ isOpen, onClose, selectedProduct, initialType }:
           }
 
           .query-option-btn {
-            padding: 10px 12px;
-            font-size: 12px;
+            padding: 12px 14px;
+            gap: 12px;
           }
 
-          .query-icon {
-            font-size: 16px;
-            width: 24px;
+          .query-title {
+            font-size: 14.5px;
+          }
+
+          .query-desc {
+            font-size: 12.5px;
           }
 
           .form-field {

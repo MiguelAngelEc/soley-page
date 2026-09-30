@@ -57,7 +57,7 @@ export function Catalog() {
       <div className="halftone" style={{ top: -40, right: -60, width: 320, height: 320, opacity: 0.12 }} />
 
       <div className="container-x" style={{ position: "relative" }}>
-        <div className="section-head reveal">
+        <div className="section-head reveal-stagger">
           <span className="eyebrow"><span className="dot" />Catálogo</span>
           <h2>Productos pensados para <span className="accent">cada uso</span></h2>
           <p className="lead">Seis productos esenciales, cada uno en tres presentaciones. Desde el hogar hasta la operación industrial.</p>

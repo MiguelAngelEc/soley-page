@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ArrowIcon, WhatsAppIcon } from "@/components/shared/Icons";
 import { WhatsAppModal } from "@/components/shared/WhatsAppModal";
+import { HeroBubbles } from "@/components/layout/HeroBubbles";
 import { useReducedMotionPreference } from "@/lib/a11y";
 import Image from "next/image";
 
@@ -180,6 +181,7 @@ export function Hero() {
             onPointerLeave={() => moveCaneca(0, 0)}
           >
             <div className="hero-caneca-shadow" aria-hidden="true" />
+            <HeroBubbles layer="back" />
             <div className="hero-caneca">
               <Image
                 src="/productos/Detergente Caneca 3D Angulo.png"
@@ -190,6 +192,7 @@ export function Hero() {
                 preload
               />
             </div>
+            <HeroBubbles layer="front" />
           </div>
         </div>
       </div>
@@ -231,11 +234,11 @@ export function Hero() {
             background: linear-gradient(rgba(255,255,255,0.75), rgba(255,255,255,0.75));
           }
         }
-        .hero-caneca-area { position: relative; height: 580px; }
+        .hero-caneca-area { position: relative; height: 580px; --rise: 660px; }
         .hero-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 80px; align-items: center; }
         @media (max-width: 980px) {
           .hero-grid { grid-template-columns: 1fr; gap: 48px; }
-          .hero-caneca-area { height: 470px; }
+          .hero-caneca-area { height: 470px; --rise: 540px; }
         }
         .hero-caneca, .hero-caneca-shadow {
           /* Easing con rebote: la caneca "salta" un poco al seguir el mouse. */
@@ -243,7 +246,7 @@ export function Hero() {
           will-change: transform;
         }
         .hero-caneca {
-          position: absolute; inset: 0 0 4%;
+          position: absolute; inset: 0 0 4%; z-index: 1;
           filter: drop-shadow(0 30px 45px rgba(11,23,54,0.22));
           transform: perspective(1000px)
             translate3d(calc(var(--mx, 0) * 30px), calc(var(--my, 0) * 22px), 0)

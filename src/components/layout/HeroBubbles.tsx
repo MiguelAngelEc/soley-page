@@ -34,10 +34,43 @@ const BUBBLES: Bubble[] = [
 const POP_MS = 420;
 const RESPAWN_DELAY_S = 0.6;
 const DROPLETS = 8;
+const POP_SOUND = "/efectos/burbuja-pop.mp3";
+
+// Audio compartido por las dos capas de burbujas. Se crea en el primer clic
+// (los navegadores solo permiten sonido tras una interaccion) y el archivo se
+// decodifica una sola vez.
+let popAudio: { ctx: AudioContext; buffer: Promise<AudioBuffer | null> } | null = null;
+
+function playPop(size: number) {
+  if (!popAudio) {
+    const ctx = new AudioContext();
+    popAudio = {
+      ctx,
+      buffer: fetch(POP_SOUND)
+        .then((r) => r.arrayBuffer())
+        .then((data) => ctx.decodeAudioData(data))
+        .catch(() => null),
+    };
+  }
+  const { ctx, buffer } = popAudio;
+  void ctx.resume();
+  void buffer.then((buf) => {
+    if (!buf) return;
+    const source = ctx.createBufferSource();
+    source.buffer = buf;
+    // Burbujas chicas suenan mas agudas, las grandes mas graves.
+    source.playbackRate.value = Math.min(1.5, Math.max(0.8, 1.6 - size / 100));
+    const gain = ctx.createGain();
+    gain.gain.value = 0.45;
+    source.connect(gain).connect(ctx.destination);
+    source.start();
+  });
+}
+
 /**
  * Burbujas decorativas que suben alrededor de la caneca del hero. Un clic (o
- * toque) las revienta y vuelven a salir desde abajo. Con movimiento reducido
- * no se muestran.
+ * toque) las revienta con un "pop" y vuelven a salir desde abajo. Con
+ * movimiento reducido no se muestran.
  */
 export function HeroBubbles({ layer }: { layer: "back" | "front" }) {
   // Cada burbuja lleva un contador: al cambiar, React la vuelve a montar y su
@@ -51,8 +84,9 @@ export function HeroBubbles({ layer }: { layer: "back" | "front" }) {
     return () => pending.forEach((t) => window.clearTimeout(t));
   }, []);
 
-  function pop(id: number) {
+  function pop(id: number, size: number) {
     if (popping[id]) return;
+    playPop(size);
     setPopping((p) => ({ ...p, [id]: true }));
     timers.current.push(
       window.setTimeout(() => {
@@ -83,7 +117,7 @@ export function HeroBubbles({ layer }: { layer: "back" | "front" }) {
             <span className="bubble-sway">
               <span
                 className={`bubble${popping[b.id] ? " is-popping" : ""}`}
-                onPointerDown={() => pop(b.id)}
+                onPointerDown={() => pop(b.id, b.size)}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element -- sprite de 30 KB, sin beneficio de next/image */}
                 <img src="/efectos/burbuja.webp" alt="" draggable={false} />

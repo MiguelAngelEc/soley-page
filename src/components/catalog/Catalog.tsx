@@ -5,7 +5,6 @@ import { products, categories } from "@/data/products";
 import type { Product, ProductCategory, PresentationType } from "@/data/products";
 import { ProductCard } from "./ProductCard";
 import { ProductModal } from "./ProductModal";
-import { PromoBanner } from "./PromoBanner";
 import { useReveal } from "@/lib/hooks";
 import { ArrowIcon, WhatsAppIcon, DocumentIcon, DownloadIcon } from "@/components/shared/Icons";
 
@@ -114,8 +113,6 @@ export function Catalog() {
             ))}
           </div>
         </div>
-
-        <PromoBanner />
 
         <div className="reveal" style={{
           marginTop: 32,

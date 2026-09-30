@@ -249,23 +249,23 @@ export function Hero() {
           position: absolute; inset: 0 0 4%; z-index: 1;
           filter: drop-shadow(0 30px 45px rgba(11,23,54,0.22));
           transform: perspective(1000px)
-            translate3d(calc(var(--mx, 0) * 30px), calc(var(--my, 0) * 22px), 0)
-            rotateY(calc(var(--mx, 0) * 16deg)) rotateX(calc(var(--my, 0) * -10deg))
-            rotateZ(calc(var(--mx, 0) * 4deg));
+            translate3d(calc(var(--mx, 0) * 12px), calc(var(--my, 0) * 8px), 0)
+            rotateY(calc(var(--mx, 0) * 5deg)) rotateX(calc(var(--my, 0) * -3deg))
+            rotateZ(calc(var(--mx, 0) * 1deg));
           animation: hero-caneca-float 4.5s ease-in-out infinite;
         }
         .hero-caneca-shadow {
           position: absolute; bottom: 1%; left: 18%; width: 64%; height: 34px; border-radius: 50%;
           background: radial-gradient(ellipse, rgba(11,23,54,0.28) 0%, transparent 70%);
           filter: blur(8px);
-          transform: translate3d(calc(var(--mx, 0) * -34px), 0, 0) scaleX(calc(1 - var(--my, 0) * 0.12));
+          transform: translate3d(calc(var(--mx, 0) * -14px), 0, 0) scaleX(calc(1 - var(--my, 0) * 0.05));
           animation: hero-caneca-shadow 4.5s ease-in-out infinite;
         }
         /* Flotacion en reposo; usa translate/scale sueltos para sumarse al
            transform del mouse sin pisarlo. */
         @keyframes hero-caneca-float {
           0%, 100% { translate: 0 0; }
-          50% { translate: 0 -18px; }
+          50% { translate: 0 -12px; }
         }
         @keyframes hero-caneca-shadow {
           0%, 100% { scale: 1; opacity: 1; }

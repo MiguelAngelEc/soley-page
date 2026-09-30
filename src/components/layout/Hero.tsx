@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ArrowIcon, WhatsAppIcon } from "@/components/shared/Icons";
 import { WhatsAppModal } from "@/components/shared/WhatsAppModal";
+import { HeroBubbles } from "@/components/layout/HeroBubbles";
 import { useReducedMotionPreference } from "@/lib/a11y";
 import Image from "next/image";
 
@@ -11,6 +12,17 @@ interface Slide {
   title: [string, string];
   desc: string;
 }
+
+// Compromisos que el propio sitio respalda (sin clientes ni cifras inventadas).
+const commitments = [
+  "Fabricado en Ecuador",
+  "Registro sanitario ARCSA",
+  "Más de 10 años fabricando",
+  "Fórmulas concentradas de alto rendimiento",
+  "Presentaciones de 1 L, 4 L y 20 L",
+  "Al por mayor y al por menor",
+  "Atención directa por WhatsApp",
+];
 
 const slides: Slide[] = [
   {
@@ -180,6 +192,7 @@ export function Hero() {
             onPointerLeave={() => moveCaneca(0, 0)}
           >
             <div className="hero-caneca-shadow" aria-hidden="true" />
+            <HeroBubbles layer="back" />
             <div className="hero-caneca">
               <Image
                 src="/productos/Detergente Caneca 3D Angulo.png"
@@ -190,6 +203,7 @@ export function Hero() {
                 preload
               />
             </div>
+            <HeroBubbles layer="front" />
           </div>
         </div>
       </div>
@@ -197,16 +211,12 @@ export function Hero() {
       <div style={{ borderTop: "1px solid var(--border)", background: "var(--bg-soft)" }}>
         <div className="container-x" style={{ padding: "20px 24px", display: "flex", alignItems: "center", gap: 32, overflow: "hidden" }}>
           <span style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", letterSpacing: "0.08em", textTransform: "uppercase", flexShrink: 0 }}>
-            Confían en nosotros
+            Nuestro compromiso
           </span>
           <div style={{ overflow: "hidden", flex: 1, maskImage: "linear-gradient(90deg, transparent, black 10%, black 90%, transparent)", WebkitMaskImage: "linear-gradient(90deg, transparent, black 10%, black 90%, transparent)" }}>
             <div style={{ display: "flex", gap: 56, animation: "marquee 30s linear infinite", width: "fit-content" }}>
-              {[
-                "Hotel Quito", "Hotel Imperial", "Restaurant La Casona", "Hostería El Prado",
-                "Comercial Andina", "Lavandería Express", "Clínica Ibarra", "Resort San Antonio",
-                "Hotel Quito", "Hotel Imperial", "Restaurant La Casona", "Hostería El Prado",
-                "Comercial Andina", "Lavandería Express", "Clínica Ibarra", "Resort San Antonio",
-              ].map((n, i) => (
+              {/* La lista va dos veces para que la animacion en bucle no tenga corte. */}
+              {[...commitments, ...commitments].map((n, i) => (
                 <span key={i} style={{ fontSize: 16, fontWeight: 700, color: "var(--muted-2)", whiteSpace: "nowrap" }}>{n}</span>
               ))}
             </div>
@@ -231,11 +241,11 @@ export function Hero() {
             background: linear-gradient(rgba(255,255,255,0.75), rgba(255,255,255,0.75));
           }
         }
-        .hero-caneca-area { position: relative; height: 580px; }
+        .hero-caneca-area { position: relative; height: 580px; --rise: 660px; }
         .hero-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 80px; align-items: center; }
         @media (max-width: 980px) {
           .hero-grid { grid-template-columns: 1fr; gap: 48px; }
-          .hero-caneca-area { height: 470px; }
+          .hero-caneca-area { height: 470px; --rise: 540px; }
         }
         .hero-caneca, .hero-caneca-shadow {
           /* Easing con rebote: la caneca "salta" un poco al seguir el mouse. */
@@ -243,26 +253,26 @@ export function Hero() {
           will-change: transform;
         }
         .hero-caneca {
-          position: absolute; inset: 0 0 4%;
+          position: absolute; inset: 0 0 4%; z-index: 1;
           filter: drop-shadow(0 30px 45px rgba(11,23,54,0.22));
           transform: perspective(1000px)
-            translate3d(calc(var(--mx, 0) * 30px), calc(var(--my, 0) * 22px), 0)
-            rotateY(calc(var(--mx, 0) * 16deg)) rotateX(calc(var(--my, 0) * -10deg))
-            rotateZ(calc(var(--mx, 0) * 4deg));
+            translate3d(calc(var(--mx, 0) * 12px), calc(var(--my, 0) * 8px), 0)
+            rotateY(calc(var(--mx, 0) * 5deg)) rotateX(calc(var(--my, 0) * -3deg))
+            rotateZ(calc(var(--mx, 0) * 1deg));
           animation: hero-caneca-float 4.5s ease-in-out infinite;
         }
         .hero-caneca-shadow {
           position: absolute; bottom: 1%; left: 18%; width: 64%; height: 34px; border-radius: 50%;
           background: radial-gradient(ellipse, rgba(11,23,54,0.28) 0%, transparent 70%);
           filter: blur(8px);
-          transform: translate3d(calc(var(--mx, 0) * -34px), 0, 0) scaleX(calc(1 - var(--my, 0) * 0.12));
+          transform: translate3d(calc(var(--mx, 0) * -14px), 0, 0) scaleX(calc(1 - var(--my, 0) * 0.05));
           animation: hero-caneca-shadow 4.5s ease-in-out infinite;
         }
         /* Flotacion en reposo; usa translate/scale sueltos para sumarse al
            transform del mouse sin pisarlo. */
         @keyframes hero-caneca-float {
           0%, 100% { translate: 0 0; }
-          50% { translate: 0 -18px; }
+          50% { translate: 0 -12px; }
         }
         @keyframes hero-caneca-shadow {
           0%, 100% { scale: 1; opacity: 1; }

@@ -8,6 +8,7 @@ export const LIMITS = {
   email: 254,
   phone: 20,
   ruc: 13,
+  city: 80,
   product: 120,
   quantity: 60,
   message: 1000,

@@ -15,9 +15,9 @@ const jbMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Soley · Amenities & Productos de Limpieza | Al Por Mayor y Al Por Menor",
+  title: "Soley · Amenities & Productos de Limpieza | Al por mayor y al por menor",
   description:
-    "Fabricantes ecuatorianos de productos de limpieza profesionales. Detergente, cloro, jabón líquido, desinfectante, alcohol y gel antibacterial. Al Por Mayor y Al Por Menor desde Ibarra.",
+    "Fabricantes ecuatorianos de productos de limpieza profesionales. Detergente, cloro, jabón líquido, desinfectante, alcohol y gel antibacterial. Al por mayor y al por menor desde Ibarra.",
   keywords: [
     "productos limpieza Ecuador",
     "detergente líquido",
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Soley · Amenities & Productos de Limpieza",
     description:
-      "Productos de limpieza profesionales fabricados en Ecuador. Al Por Mayor y Al Por Menor.",
+      "Productos de limpieza profesionales fabricados en Ecuador. Al por mayor y al por menor.",
   },
 };
 

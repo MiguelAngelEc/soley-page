@@ -1,23 +1,16 @@
-// Promocion destacada de la seccion de productos.
-// Para apagarla, poner `active: false`: el banner desaparece y la seccion
-// vuelve a quedar como sin promocion. No hace falta tocar nada mas.
+// Promocion del mes: se muestra como anuncio en video al entrar a la pagina.
+// Para apagarla, poner `active: false` (o `ad: null`). No hace falta tocar
+// nada mas.
 
 export interface Promo {
   active: boolean;
-  /** id de un producto de products.ts; define la imagen y el enlace del modal */
+  /** id de un producto de products.ts; define el producto del pedido por WhatsApp */
   productId: string;
   eyebrow: string;
-  headline: string;
-  description: string;
   presentation: string;
   price: string;
-  discount: string;
-  /** vigencia mostrada al cliente */
-  validity: string;
-  benefits: string[];
   /**
    * Anuncio en video que se abre como modal al entrar a la pagina.
-   * `null` lo desactiva sin tocar el banner del catalogo.
    * El video se genera con HyperFrames en ../videos/soley-promo-caneca
    * (ver su README) y se copia a public/promo/.
    */
@@ -32,18 +25,8 @@ export const promo: Promo = {
   active: true,
   productId: "detergente-liquido",
   eyebrow: "Oferta del mes",
-  headline: "Limpia más. Rinde mejor.",
-  description:
-    "Detergente Líquido concentrado en caneca de 20 L. Alta espuma, doble rendimiento por carga.",
   presentation: "Caneca 20 L",
   price: "12,50",
-  discount: "30%",
-  validity: "Válido hasta agotar stock",
-  benefits: [
-    "Alta espuma, doble rendimiento por carga",
-    "Entrega en Ibarra y alrededores",
-    "Válido hasta agotar stock",
-  ],
   ad: {
     video: "/promo/caneca-oferta.mp4",
     poster: "/promo/caneca-oferta.jpg",

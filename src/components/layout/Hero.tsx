@@ -46,13 +46,40 @@ export function Hero() {
   const [idx, setIdx] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [whatsappModalOpen, setWhatsappModalOpen] = useState(false);
+  const [canecaReady, setCanecaReady] = useState(false);
+  const [canecaFallback, setCanecaFallback] = useState(false);
+  const [canecaRunning, setCanecaRunning] = useState(false);
   const reducedMotion = useReducedMotionPreference();
   const contentRef = useRef<HTMLDivElement>(null);
   const slide = slides[idx];
   const sectionRef = useRef<HTMLElement>(null);
+  const canecaAreaRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef(0);
 
   useEffect(() => () => cancelAnimationFrame(frameRef.current), []);
+
+  // Pausa caneca y sombra fuera de pantalla, en segundo plano o tras el anuncio.
+  useEffect(() => {
+    const area = canecaAreaRef.current;
+    if (!area) return;
+    let inView = false;
+    const update = () => setCanecaRunning(
+      inView && !document.hidden && document.documentElement.style.overflow !== "hidden",
+    );
+    const observer = new IntersectionObserver(([entry]) => {
+      inView = entry.isIntersecting;
+      update();
+    });
+    observer.observe(area);
+    const scrollLockObserver = new MutationObserver(update);
+    scrollLockObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["style"] });
+    document.addEventListener("visibilitychange", update);
+    return () => {
+      observer.disconnect();
+      scrollLockObserver.disconnect();
+      document.removeEventListener("visibilitychange", update);
+    };
+  }, []);
 
   // La caneca empieza de frente y solo gira cuando el mouse pasa sobre ella;
   // escribe variables CSS (un frame por movimiento), sin estado de React.
@@ -65,7 +92,7 @@ export function Hero() {
   }
 
   function onCanecaPointerMove(e: React.PointerEvent<HTMLDivElement>) {
-    if (reducedMotion || e.pointerType !== "mouse") return;
+    if (reducedMotion || !canecaReady || !canecaRunning || e.pointerType !== "mouse") return;
     const rect = e.currentTarget.getBoundingClientRect();
     moveCaneca(
       ((e.clientX - rect.left) / rect.width) * 2 - 1,
@@ -187,21 +214,34 @@ export function Hero() {
           </div>
 
           <div
+            ref={canecaAreaRef}
             className="hero-caneca-area"
+            data-ready={canecaReady}
+            data-running={canecaRunning}
             onPointerMove={onCanecaPointerMove}
             onPointerLeave={() => moveCaneca(0, 0)}
           >
-            <div className="hero-caneca-shadow" aria-hidden="true" />
+            <div className="hero-caneca-shadow" aria-hidden="true">
+              <div className="hero-caneca-shadow-tilt" />
+            </div>
             <HeroBubbles layer="back" />
             <div className="hero-caneca">
-              <Image
-                src="/productos/Detergente Caneca 3D Angulo.png"
-                alt="Caneca de Detergente Líquido Soley de 20 litros"
-                fill
-                sizes="(max-width: 980px) 90vw, 600px"
-                style={{ objectFit: "contain" }}
-                preload
-              />
+              <div className="hero-caneca-tilt">
+                <Image
+                  src="/productos/Detergente Caneca 3D Angulo.png"
+                  alt="Caneca de Detergente Líquido Soley de 20 litros"
+                  fill
+                  sizes="(max-width: 980px) 90vw, 600px"
+                  style={{ objectFit: "contain" }}
+                  preload
+                  unoptimized={canecaFallback}
+                  onLoad={() => setCanecaReady(true)}
+                  onError={() => {
+                    setCanecaReady(false);
+                    setCanecaFallback(true);
+                  }}
+                />
+              </div>
             </div>
             <HeroBubbles layer="front" />
           </div>
@@ -247,39 +287,54 @@ export function Hero() {
           .hero-grid { grid-template-columns: 1fr; gap: 48px; }
           .hero-caneca-area { height: 470px; --rise: 540px; }
         }
-        .hero-caneca, .hero-caneca-shadow {
+        .hero-caneca-tilt, .hero-caneca-shadow-tilt {
           /* Easing con rebote: la caneca "salta" un poco al seguir el mouse. */
           transition: transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
-          will-change: transform;
         }
         .hero-caneca {
           position: absolute; inset: 0 0 4%; z-index: 1;
+        }
+        .hero-caneca-tilt {
+          position: absolute; inset: 0;
           filter: drop-shadow(0 30px 45px rgba(11,23,54,0.22));
           transform: perspective(1000px)
             translate3d(calc(var(--mx, 0) * 12px), calc(var(--my, 0) * 8px), 0)
             rotateY(calc(var(--mx, 0) * 5deg)) rotateX(calc(var(--my, 0) * -3deg))
             rotateZ(calc(var(--mx, 0) * 1deg));
-          animation: hero-caneca-float 4.5s ease-in-out infinite;
         }
         .hero-caneca-shadow {
           position: absolute; bottom: 1%; left: 18%; width: 64%; height: 34px; border-radius: 50%;
+        }
+        .hero-caneca-shadow-tilt {
+          position: absolute; inset: 0; border-radius: inherit;
           background: radial-gradient(ellipse, rgba(11,23,54,0.28) 0%, transparent 70%);
           filter: blur(8px);
           transform: translate3d(calc(var(--mx, 0) * -14px), 0, 0) scaleX(calc(1 - var(--my, 0) * 0.05));
+        }
+        .hero-caneca-area[data-ready="false"] .hero-caneca-shadow { opacity: 0; }
+        .hero-caneca-area[data-ready="true"] .hero-caneca {
+          animation: hero-caneca-float 4.5s ease-in-out infinite;
+        }
+        .hero-caneca-area[data-ready="true"] .hero-caneca-shadow {
           animation: hero-caneca-shadow 4.5s ease-in-out infinite;
         }
-        /* Flotacion en reposo; usa translate/scale sueltos para sumarse al
-           transform del mouse sin pisarlo. */
+        .hero-caneca-area[data-running="false"] .hero-caneca,
+        .hero-caneca-area[data-running="false"] .hero-caneca-shadow {
+          animation-play-state: paused;
+        }
+        /* Contenedores separados: flotacion y giro no compiten por transform. */
         @keyframes hero-caneca-float {
-          0%, 100% { translate: 0 0; }
-          50% { translate: 0 -12px; }
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-12px); }
         }
         @keyframes hero-caneca-shadow {
-          0%, 100% { scale: 1; opacity: 1; }
-          50% { scale: 0.82; opacity: 0.7; }
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(0.82); opacity: 0.7; }
         }
         @media (prefers-reduced-motion: reduce) {
-          .hero-caneca, .hero-caneca-shadow { transform: none; animation: none; }
+          .hero-caneca-area .hero-caneca,
+          .hero-caneca-area .hero-caneca-shadow { transform: none; animation: none !important; }
+          .hero-caneca-tilt, .hero-caneca-shadow-tilt { transform: none; transition: none; }
         }
       `}</style>
     </section>

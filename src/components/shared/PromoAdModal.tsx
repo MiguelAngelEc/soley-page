@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useId, useRef, useEffect } from "react";
+import Image from "next/image";
 import { promo } from "@/data/promo";
 import { products } from "@/data/products";
 import { WhatsAppModal } from "@/components/shared/WhatsAppModal";
@@ -27,6 +28,7 @@ type Phase = "idle" | "loading" | "open" | "closing" | "done";
 export function PromoAdModal() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [whatsappOpen, setWhatsappOpen] = useState(false);
+  const [videoPlaying, setVideoPlaying] = useState(false);
   const reducedMotion = useReducedMotionPreference();
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -76,8 +78,16 @@ export function PromoAdModal() {
     if (!isOpen || reducedMotion) return;
     const video = videoRef.current;
     if (!video) return;
+    let cancelled = false;
+    video.muted = true;
     video.currentTime = 0;
-    void video.play().catch(() => {});
+    void video.play().catch(() => {
+      if (!cancelled) setVideoPlaying(false);
+    });
+    return () => {
+      cancelled = true;
+      video.pause();
+    };
   }, [isOpen, reducedMotion]);
 
   // 3) Salida suave: se desmonta cuando termina la transicion.
@@ -131,19 +141,35 @@ export function PromoAdModal() {
               {promo.eyebrow}: {product.name} {promo.presentation} a ${promo.price}
             </h2>
 
-            {/* Con movimiento reducido no se reproduce solo: queda el poster y controles. */}
-            <video
-              ref={videoRef}
-              className="ad-video"
-              src={video}
-              poster={poster}
-              muted
-              loop
-              playsInline
-              controls={reducedMotion}
-              preload="auto"
-              aria-hidden="true"
-            />
+            {/* El poster cubre el video hasta que se reproduce, sin UI del reproductor. */}
+            <div className="ad-media">
+              <Image
+                className="ad-poster"
+                src={poster}
+                alt=""
+                width={1080}
+                height={1350}
+                unoptimized
+              />
+              {!reducedMotion && (
+                <video
+                  ref={videoRef}
+                  className={`ad-video${videoPlaying ? " playing" : ""}`}
+                  src={video}
+                  poster={poster}
+                  muted
+                  loop
+                  playsInline
+                  controls={false}
+                  preload="auto"
+                  onPlaying={() => setVideoPlaying(true)}
+                  onWaiting={() => setVideoPlaying(false)}
+                  onPause={() => setVideoPlaying(false)}
+                  onError={() => setVideoPlaying(false)}
+                  aria-hidden="true"
+                />
+              )}
+            </div>
 
             <div className="ad-actions">
               <button
@@ -199,12 +225,26 @@ export function PromoAdModal() {
             transform: none;
           }
         }
+        .ad-media {
+          position: relative;
+          aspect-ratio: 4 / 5;
+          background: #f4f8fd;
+        }
+        .ad-poster,
         .ad-video {
           display: block;
           width: 100%;
-          aspect-ratio: 4 / 5;
+          height: 100%;
           object-fit: cover;
-          background: #f4f8fd;
+        }
+        .ad-video {
+          position: absolute;
+          inset: 0;
+          opacity: 0;
+          pointer-events: none;
+        }
+        .ad-video.playing {
+          opacity: 1;
         }
         .ad-close {
           position: absolute;

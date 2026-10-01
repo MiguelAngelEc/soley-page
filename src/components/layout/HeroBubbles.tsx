@@ -34,6 +34,7 @@ const BUBBLES: Bubble[] = [
 const POP_MS = 420;
 const RESPAWN_DELAY_S = 0.6;
 const DROPLETS = 8;
+const BUBBLE_IMAGE = "/efectos/burbuja.webp";
 const POP_SOUND = "/efectos/burbuja-pop.mp3";
 
 // Audio compartido por las dos capas de burbujas. Se crea en el primer clic
@@ -41,20 +42,21 @@ const POP_SOUND = "/efectos/burbuja-pop.mp3";
 // decodifica una sola vez.
 let popAudio: { ctx: AudioContext; buffer: Promise<AudioBuffer | null> } | null = null;
 
-function playPop(size: number) {
-  if (!popAudio) {
-    const ctx = new AudioContext();
-    popAudio = {
-      ctx,
-      buffer: fetch(POP_SOUND)
-        .then((r) => r.arrayBuffer())
-        .then((data) => ctx.decodeAudioData(data))
-        .catch(() => null),
-    };
-  }
-  const { ctx, buffer } = popAudio;
-  void ctx.resume();
-  void buffer.then((buf) => {
+async function playPop(size: number) {
+  try {
+    if (!popAudio) {
+      const ctx = new AudioContext();
+      popAudio = {
+        ctx,
+        buffer: fetch(POP_SOUND)
+          .then((r) => r.arrayBuffer())
+          .then((data) => ctx.decodeAudioData(data))
+          .catch(() => null),
+      };
+    }
+    const { ctx, buffer } = popAudio;
+    await ctx.resume();
+    const buf = await buffer;
     if (!buf) return;
     const source = ctx.createBufferSource();
     source.buffer = buf;
@@ -64,19 +66,25 @@ function playPop(size: number) {
     gain.gain.value = 0.45;
     source.connect(gain).connect(ctx.destination);
     source.start();
-  });
+  } catch {
+    // El sonido es opcional: nunca impide el efecto visual.
+  }
 }
 
 /**
  * Burbujas decorativas que suben alrededor de la caneca del hero. Un clic (o
  * toque) las revienta con un "pop" y vuelven a salir desde abajo. Con
- * movimiento reducido no se muestran.
+ * movimiento reducido quedan estaticas. La decoracion CSS sirve de respaldo
+ * mientras carga la imagen o si no se puede mostrar.
  */
 export function HeroBubbles({ layer }: { layer: "back" | "front" }) {
   // Cada burbuja lleva un contador: al cambiar, React la vuelve a montar y su
   // animacion arranca otra vez desde abajo.
   const [generation, setGeneration] = useState<Record<number, number>>({});
   const [popping, setPopping] = useState<Record<number, boolean>>({});
+  const [spriteReady, setSpriteReady] = useState(false);
+  const [running, setRunning] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const timers = useRef<number[]>([]);
 
   useEffect(() => {
@@ -84,10 +92,46 @@ export function HeroBubbles({ layer }: { layer: "back" | "front" }) {
     return () => pending.forEach((t) => window.clearTimeout(t));
   }, []);
 
+  // decode tambien funciona si el navegador cargo la imagen antes de hidratar.
+  useEffect(() => {
+    let cancelled = false;
+    const image = new window.Image();
+    image.src = BUBBLE_IMAGE;
+    void image.decode().then(() => {
+      if (!cancelled) setSpriteReady(true);
+    }).catch(() => {
+      // Conserva las burbujas CSS si el archivo no se puede decodificar.
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  // Solo anima cuando la caneca se ve, la pestaña esta activa y no hay anuncio.
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    let inView = false;
+    const update = () => setRunning(
+      inView && !document.hidden && document.documentElement.style.overflow !== "hidden",
+    );
+    const observer = new IntersectionObserver(([entry]) => {
+      inView = entry.isIntersecting;
+      update();
+    });
+    observer.observe(container);
+    const scrollLockObserver = new MutationObserver(update);
+    scrollLockObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["style"] });
+    document.addEventListener("visibilitychange", update);
+    return () => {
+      observer.disconnect();
+      scrollLockObserver.disconnect();
+      document.removeEventListener("visibilitychange", update);
+    };
+  }, []);
+
   function pop(id: number, size: number) {
     if (popping[id]) return;
-    playPop(size);
     setPopping((p) => ({ ...p, [id]: true }));
+    void playPop(size);
     timers.current.push(
       window.setTimeout(() => {
         setPopping((p) => ({ ...p, [id]: false }));
@@ -97,7 +141,13 @@ export function HeroBubbles({ layer }: { layer: "back" | "front" }) {
   }
 
   return (
-    <div className={`hero-bubbles hero-bubbles-${layer}`} aria-hidden="true">
+    <div
+      ref={containerRef}
+      className={`hero-bubbles hero-bubbles-${layer}`}
+      data-sprite-ready={spriteReady}
+      data-running={running}
+      aria-hidden="true"
+    >
       {BUBBLES.filter((b) => b.front === (layer === "front")).map((b) => {
         const gen = generation[b.id] ?? 0;
         return (
@@ -111,6 +161,7 @@ export function HeroBubbles({ layer }: { layer: "back" | "front" }) {
                 "--dur": `${b.dur}s`,
                 "--delay": `${gen === 0 ? b.delay : RESPAWN_DELAY_S}s`,
                 "--sway": `${b.sway}px`,
+                "--start-progress": `${b.delay / b.dur}`,
               } as React.CSSProperties
             }
           >
@@ -120,7 +171,13 @@ export function HeroBubbles({ layer }: { layer: "back" | "front" }) {
                 onPointerDown={() => pop(b.id, b.size)}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element -- sprite de 30 KB, sin beneficio de next/image */}
-                <img src="/efectos/burbuja.webp" alt="" draggable={false} />
+                <img
+                  src={BUBBLE_IMAGE}
+                  alt=""
+                  draggable={false}
+                  width={92}
+                  height={92}
+                />
                 {popping[b.id] && (
                   <>
                     <span className="bubble-ring" />
@@ -147,21 +204,48 @@ export function HeroBubbles({ layer }: { layer: "back" | "front" }) {
           position: absolute; bottom: 0;
           width: var(--size); height: var(--size);
           margin-left: calc(var(--size) / -2);
+          opacity: 1;
+          transform: translateY(calc(var(--rise, 640px) * var(--start-progress)));
+        }
+        .hero-bubbles[data-sprite-ready="true"] .bubble-track {
           animation: bubble-rise var(--dur) linear var(--delay) infinite both;
         }
         .bubble-sway {
           display: block; width: 100%; height: 100%;
+        }
+        .hero-bubbles[data-sprite-ready="true"] .bubble-sway {
           animation: bubble-sway calc(var(--dur) / 3) ease-in-out var(--delay) infinite alternate;
         }
         .bubble {
           position: relative; display: block; width: 100%; height: 100%;
           pointer-events: auto; cursor: pointer;
+        }
+        .hero-bubbles[data-sprite-ready="true"] .bubble {
           animation: bubble-wobble 2.6s ease-in-out infinite alternate;
         }
+        .hero-bubbles[data-running="false"] .bubble-track,
+        .hero-bubbles[data-running="false"] .bubble-sway,
+        .hero-bubbles[data-running="false"] .bubble {
+          animation-play-state: paused;
+        }
+        .bubble::before {
+          content: "";
+          position: absolute; inset: 0;
+          border-radius: 50%;
+          border: 1px solid rgba(140, 190, 220, 0.55);
+          background:
+            radial-gradient(ellipse at 30% 25%, rgba(255, 255, 255, 0.95), transparent 38%),
+            radial-gradient(circle, transparent 48%, rgba(130, 190, 230, 0.22) 78%, rgba(255, 255, 255, 0.65));
+          box-shadow: inset 0 0 6px rgba(130, 190, 230, 0.25);
+          pointer-events: none;
+        }
+        .hero-bubbles[data-sprite-ready="true"] .bubble::before { opacity: 0; }
         .bubble img {
           width: 100%; height: 100%; display: block;
           user-select: none; -webkit-user-drag: none;
+          opacity: 0;
         }
+        .hero-bubbles[data-sprite-ready="true"] .bubble img { opacity: 1; }
         @keyframes bubble-rise {
           0% { transform: translateY(20%); opacity: 0; }
           8% { opacity: 1; }
@@ -178,8 +262,9 @@ export function HeroBubbles({ layer }: { layer: "back" | "front" }) {
         }
 
         /* Reventar: la pelicula se infla y desaparece, sale un anillo y gotitas. */
-        .bubble.is-popping { animation: none; pointer-events: none; }
-        .bubble.is-popping img { animation: bubble-pop 0.22s ease-out forwards; }
+        .hero-bubbles .bubble.is-popping { animation: none; pointer-events: none; }
+        .bubble.is-popping img,
+        .bubble.is-popping::before { animation: bubble-pop 0.22s ease-out forwards; }
         @keyframes bubble-pop {
           to { transform: scale(1.35); opacity: 0; }
         }
@@ -205,7 +290,17 @@ export function HeroBubbles({ layer }: { layer: "back" | "front" }) {
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .hero-bubbles { display: none; }
+          .hero-bubbles .bubble-track,
+          .hero-bubbles .bubble-sway,
+          .hero-bubbles .bubble {
+            animation: none !important;
+          }
+          .hero-bubbles .bubble-track {
+            opacity: 1;
+            transform: translateY(calc(var(--rise, 640px) * var(--start-progress)));
+          }
+          .bubble.is-popping { opacity: 0; }
+          .bubble-ring, .bubble-drop { display: none; }
         }
       `}</style>
     </div>

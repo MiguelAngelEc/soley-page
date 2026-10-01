@@ -64,9 +64,9 @@ export function Catalog() {
         </div>
 
         <div className="catalog-controls reveal">
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          <div className="cat-chips" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
             {categories.map((c) => (
-              <button key={c.id} onClick={() => handleCategoryChange(c.id)}
+              <button key={c.id} className="cat-chip" onClick={() => handleCategoryChange(c.id)}
                 style={{
                   padding: "10px 20px", borderRadius: 999,
                   fontSize: 14, fontWeight: 600,
@@ -79,7 +79,7 @@ export function Catalog() {
             ))}
           </div>
 
-          <div style={{
+          <div className="mode-toggle" style={{
             background: "white", padding: 4, borderRadius: 999,
             border: "1px solid var(--border)", display: "flex", position: "relative",
           }}>
@@ -98,10 +98,10 @@ export function Catalog() {
               }}
             />
             {([
-              { id: "menudeo", label: "Venta al público" },
-              { id: "mayoreo", label: "Al por mayor · Empresas" },
+              { id: "menudeo", label: "Venta al público", short: "Venta al público" },
+              { id: "mayoreo", label: "Al por mayor · Empresas", short: "Al por mayor" },
             ] as const).map((m) => (
-              <button key={m.id} onClick={() => setMode(m.id)}
+              <button key={m.id} className="mode-btn" onClick={() => setMode(m.id)}
                 style={{
                   padding: "10px 18px", borderRadius: 999,
                   fontSize: 13.5, fontWeight: 700,
@@ -109,12 +109,15 @@ export function Catalog() {
                   background: "transparent",
                   transition: "color .2s", position: "relative", zIndex: 1,
                   flex: 1,
-                }}>{m.label}</button>
+                }}>
+                <span className="label-full">{m.label}</span>
+                <span className="label-short">{m.short}</span>
+              </button>
             ))}
           </div>
         </div>
 
-        <div className="reveal" style={{
+        <div className="reveal pdf-banner" style={{
           marginTop: 32,
           background: "linear-gradient(135deg, #F0F6FD 0%, #E3F0FF 100%)",
           borderRadius: 24,
@@ -129,7 +132,7 @@ export function Catalog() {
           position: "relative",
           overflow: "hidden",
         }}>
-          <div style={{
+          <div className="pdf-banner-dots" style={{
             position: "absolute",
             top: -30,
             left: -30,
@@ -139,7 +142,7 @@ export function Catalog() {
             backgroundSize: "16px 16px",
             opacity: 0.08,
           }} />
-          <div style={{ display: "flex", alignItems: "center", gap: 20, position: "relative", flex: 1 }}>
+          <div className="pdf-banner-info" style={{ display: "flex", alignItems: "center", gap: 20, position: "relative", flex: 1 }}>
             <div style={{
               width: 56,
               height: 56,
@@ -166,11 +169,12 @@ export function Catalog() {
             href="/Catalogo/CatálogoSOLEY.pdf"
             target="_blank"
             rel="noopener noreferrer"
-            className="btn btn-blue"
+            className="btn btn-blue pdf-banner-btn"
             style={{ position: "relative" }}
           >
             <DownloadIcon width={18} height={18} />
-            Descargar PDF
+            <span className="label-full">Descargar PDF</span>
+            <span className="label-short">Descargar catálogo</span>
           </a>
         </div>
 
@@ -237,6 +241,32 @@ export function Catalog() {
         }
         @media (max-width: 980px) { .catalog-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 640px) { .catalog-grid { grid-template-columns: 1fr; } }
+
+        /* Movil: controles del catalogo en una sola columna, parejos.
+           - Filtros en una fila que se desliza (sin saltar de linea).
+           - Selector con etiquetas cortas en una linea y 48px de alto.
+           - Catalogo PDF como boton "Descargar catalogo" a todo el ancho. */
+        @media (max-width: 640px) {
+          .catalog-controls { gap: 12px; }
+          .cat-chips {
+            flex-wrap: nowrap !important; overflow-x: auto;
+            width: calc(100% + 40px); margin: 0 -20px; padding: 2px 20px 10px;
+            scroll-snap-type: x proximity; scrollbar-width: none;
+          }
+          .cat-chips::-webkit-scrollbar { display: none; }
+          .cat-chip { flex-shrink: 0; scroll-snap-align: start; }
+          .mode-toggle { width: 100%; }
+          .mode-btn { height: 44px; padding: 0 10px !important; font-size: 14px !important; white-space: nowrap; }
+          .pdf-banner {
+            margin-top: 12px !important; padding: 0 !important;
+            background: none !important; border: none !important; overflow: visible !important;
+          }
+          .pdf-banner-dots, .pdf-banner-info { display: none !important; }
+          .pdf-banner-btn {
+            background: white; color: var(--soley-blue);
+            border: 1.5px solid rgba(30, 91, 186, 0.35); box-shadow: none;
+          }
+        }
       `}</style>
     </section>
   );

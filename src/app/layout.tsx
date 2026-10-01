@@ -51,6 +51,30 @@ export default function RootLayout({
       lang="es"
       className={`${jakarta.variable} ${jbMono.variable} h-full antialiased`}
     >
+      <head>
+        {/* Ejecuta antes de pintar: solo una recarga completa vuelve al inicio. */}
+        <script
+          id="reload-scroll-reset"
+          dangerouslySetInnerHTML={{
+            __html: `(() => {
+              const navigation = performance.getEntriesByType("navigation")[0];
+              if (!navigation || navigation.type !== "reload") return;
+              const restoration = history.scrollRestoration;
+              history.scrollRestoration = "manual";
+              window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+              document.addEventListener("DOMContentLoaded", () => {
+                window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+              }, { once: true });
+              window.addEventListener("pageshow", () => {
+                window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                  history.scrollRestoration = restoration;
+                }));
+              }, { once: true });
+            })();`,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

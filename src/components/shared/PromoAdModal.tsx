@@ -8,87 +8,108 @@ import { WhatsAppModal } from "@/components/shared/WhatsAppModal";
 import { CloseIcon, WhatsAppIcon } from "@/components/shared/Icons";
 import { useDialogA11y, useReducedMotionPreference } from "@/lib/a11y";
 
-/** Pausa tras cargar la pagina antes de mostrar el anuncio. */
-const OPEN_DELAY_MS = 900;
-/** Si el video tarda, se muestra igual con el poster pasado este tiempo. */
-const VIDEO_WAIT_MS = 2500;
+/** Breve pausa tras la primera pintura antes de mostrar el anuncio. */
+const OPEN_DELAY_MS = 700;
 /** Debe coincidir con la transicion de salida del CSS. */
 const CLOSE_MS = 380;
 
-type Phase = "idle" | "loading" | "open" | "closing" | "done";
+type Phase = "loading" | "open" | "closing" | "done";
 
 /**
  * Anuncio de la promocion del mes con el video generado en HyperFrames. Se
  * configura (o se apaga) desde src/data/promo.ts.
  *
- * Para que no aparezca de golpe: espera a que la pagina termine de cargar,
- * prepara el video oculto y solo entonces entra con un fundido. Mientras esta
- * abierto, el fondo no se puede desplazar.
+ * Prepara el poster desde el principio y entra tras una breve pausa visual.
+ * El video no retrasa la apertura. El fondo permanece bloqueado hasta que
+ * termina la salida.
  */
 export function PromoAdModal() {
-  const [phase, setPhase] = useState<Phase>("idle");
+  const [phase, setPhase] = useState<Phase>("loading");
   const [whatsappOpen, setWhatsappOpen] = useState(false);
   const [videoPlaying, setVideoPlaying] = useState(false);
+  const [videoFailed, setVideoFailed] = useState(false);
   const reducedMotion = useReducedMotionPreference();
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const posterRef = useRef<HTMLImageElement>(null);
   const isOpen = phase === "open";
+  const scrollLocked = isOpen || phase === "closing";
 
   function close() {
     setPhase((p) => (p === "open" ? "closing" : p));
   }
 
-  useDialogA11y({ isOpen, onClose: close, containerRef: dialogRef });
+  useDialogA11y({ isOpen, onClose: close, containerRef: dialogRef, preventScroll: true });
 
-  // 1) Tras la carga completa de la pagina, empieza a preparar el anuncio.
+  // 1) Espera solo la pausa visual y el poster decodificado, no window.load.
   useEffect(() => {
+    const poster = posterRef.current;
+    if (!poster) return;
+    let cancelled = false;
+    let posterReady = false;
+    let delayElapsed = false;
     let timer = 0;
-    const start = () => {
-      timer = window.setTimeout(() => setPhase("loading"), OPEN_DELAY_MS);
+    let frame = 0;
+    const show = () => {
+      if (!cancelled && posterReady && delayElapsed) {
+        setPhase((p) => (p === "loading" ? "open" : p));
+      }
     };
-    if (document.readyState === "complete") start();
-    else window.addEventListener("load", start, { once: true });
+    const fail = () => {
+      if (!cancelled) setPhase("done");
+    };
+    const prepare = async () => {
+      try {
+        await poster.decode();
+        posterReady = true;
+        show();
+      } catch {
+        fail();
+      }
+    };
+    poster.addEventListener("load", prepare, { once: true });
+    poster.addEventListener("error", fail, { once: true });
+    if (poster.complete) {
+      if (poster.naturalWidth > 0) void prepare();
+      else fail();
+    }
+    frame = requestAnimationFrame(() => {
+      frame = requestAnimationFrame(() => {
+        timer = window.setTimeout(() => {
+          delayElapsed = true;
+          show();
+        }, OPEN_DELAY_MS);
+      });
+    });
     return () => {
-      window.removeEventListener("load", start);
+      cancelled = true;
+      poster.removeEventListener("load", prepare);
+      poster.removeEventListener("error", fail);
+      cancelAnimationFrame(frame);
       window.clearTimeout(timer);
     };
   }, []);
 
-  // 2) Se muestra cuando el video puede reproducirse (o al agotar la espera).
-  useEffect(() => {
-    if (phase !== "loading") return;
-    const video = videoRef.current;
-    const show = () => setPhase((p) => (p === "loading" ? "open" : p));
-    if (reducedMotion || !video) {
-      show();
-      return;
-    }
-    if (video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) show();
-    video.addEventListener("canplay", show, { once: true });
-    const fallback = window.setTimeout(show, VIDEO_WAIT_MS);
-    return () => {
-      video.removeEventListener("canplay", show);
-      window.clearTimeout(fallback);
-    };
-  }, [phase, reducedMotion]);
-
   // Arranca el video desde el principio justo cuando el anuncio entra.
   useEffect(() => {
-    if (!isOpen || reducedMotion) return;
+    if (!isOpen || reducedMotion || videoFailed) return;
     const video = videoRef.current;
     if (!video) return;
     let cancelled = false;
     video.muted = true;
     video.currentTime = 0;
     void video.play().catch(() => {
-      if (!cancelled) setVideoPlaying(false);
+      if (!cancelled) {
+        setVideoPlaying(false);
+        setVideoFailed(true);
+      }
     });
     return () => {
       cancelled = true;
       video.pause();
     };
-  }, [isOpen, reducedMotion]);
+  }, [isOpen, reducedMotion, videoFailed]);
 
   // 3) Salida suave: se desmonta cuando termina la transicion.
   useEffect(() => {
@@ -100,7 +121,7 @@ export function PromoAdModal() {
   // Bloquea el desplazamiento de la pagina mientras el anuncio esta abierto,
   // compensando el ancho de la barra de scroll para que nada se mueva.
   useEffect(() => {
-    if (!isOpen) return;
+    if (!scrollLocked) return;
     const html = document.documentElement;
     const body = document.body;
     const scrollbar = window.innerWidth - html.clientWidth;
@@ -111,7 +132,7 @@ export function PromoAdModal() {
       html.style.overflow = prev.overflow;
       body.style.paddingRight = prev.paddingRight;
     };
-  }, [isOpen]);
+  }, [scrollLocked]);
 
   const product = products.find((p) => p.id === promo.productId);
   if (!promo.active || !promo.ad || !product) return null;
@@ -124,6 +145,7 @@ export function PromoAdModal() {
           className={`modal-overlay ad-overlay${isOpen ? " open" : ""}`}
           onClick={close}
           aria-hidden={!isOpen}
+          inert={!isOpen}
         >
           <div
             ref={dialogRef}
@@ -144,14 +166,17 @@ export function PromoAdModal() {
             {/* El poster cubre el video hasta que se reproduce, sin UI del reproductor. */}
             <div className="ad-media">
               <Image
+                ref={posterRef}
                 className="ad-poster"
                 src={poster}
                 alt=""
                 width={1080}
                 height={1350}
+                loading="eager"
+                fetchPriority="high"
                 unoptimized
               />
-              {!reducedMotion && (
+              {scrollLocked && !reducedMotion && !videoFailed && (
                 <video
                   ref={videoRef}
                   className={`ad-video${videoPlaying ? " playing" : ""}`}
@@ -163,9 +188,16 @@ export function PromoAdModal() {
                   controls={false}
                   preload="auto"
                   onPlaying={() => setVideoPlaying(true)}
-                  onWaiting={() => setVideoPlaying(false)}
-                  onPause={() => setVideoPlaying(false)}
-                  onError={() => setVideoPlaying(false)}
+                  onPause={() => {
+                    if (isOpen) {
+                      setVideoPlaying(false);
+                      setVideoFailed(true);
+                    }
+                  }}
+                  onError={() => {
+                    setVideoPlaying(false);
+                    setVideoFailed(true);
+                  }}
                   aria-hidden="true"
                 />
               )}
@@ -205,19 +237,20 @@ export function PromoAdModal() {
           position: relative;
           display: flex;
           flex-direction: column;
-          width: min(560px, 100%, calc((100dvh - 170px) * 0.8));
+          width: min(560px, 100%, calc((100vh - 170px) * 0.8));
+          width: min(560px, 100%, calc((100svh - 170px) * 0.8));
           border-radius: 24px;
           overflow: hidden;
           background: white;
           box-shadow: var(--shadow-lg);
           opacity: 0;
-          transform: translateY(24px) scale(0.97);
+          transform: translateY(12px);
           transition: opacity 0.38s ease, transform 0.38s ease;
         }
         .ad-overlay.open .ad-card {
           opacity: 1;
           transform: none;
-          transition: opacity 0.5s ease 0.08s, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.08s;
+          transition: opacity 0.3s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
         }
         @media (prefers-reduced-motion: reduce) {
           .ad-card,
@@ -228,6 +261,7 @@ export function PromoAdModal() {
         .ad-media {
           position: relative;
           aspect-ratio: 4 / 5;
+          flex-shrink: 0;
           background: #f4f8fd;
         }
         .ad-poster,

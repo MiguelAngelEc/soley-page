@@ -16,6 +16,8 @@ interface DialogA11yOptions {
   containerRef: React.RefObject<HTMLElement | null>;
   /** Foco inicial; por defecto el primer elemento enfocable del contenedor. */
   initialFocusRef?: React.RefObject<HTMLElement | null>;
+  /** Evita que el foco inicial desplace la pagina. */
+  preventScroll?: boolean;
 }
 
 /**
@@ -30,7 +32,7 @@ interface DialogA11yOptions {
  * renderizan en el lugar del arbol donde viven, no en un portal separado del
  * contenido, asi que aislar el fondo exigiria una reestructuracion mayor.
  */
-export function useDialogA11y({ isOpen, onClose, containerRef, initialFocusRef }: DialogA11yOptions) {
+export function useDialogA11y({ isOpen, onClose, containerRef, initialFocusRef, preventScroll = false }: DialogA11yOptions) {
   const onCloseRef = useRef(onClose);
   useEffect(() => {
     onCloseRef.current = onClose;
@@ -43,7 +45,7 @@ export function useDialogA11y({ isOpen, onClose, containerRef, initialFocusRef }
 
     const target = initialFocusRef?.current ?? containerRef.current?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
     // Deja pintar el modal antes de mover el foco.
-    const raf = requestAnimationFrame(() => target?.focus());
+    const raf = requestAnimationFrame(() => target?.focus({ preventScroll }));
 
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
@@ -75,9 +77,9 @@ export function useDialogA11y({ isOpen, onClose, containerRef, initialFocusRef }
     return () => {
       cancelAnimationFrame(raf);
       document.removeEventListener("keydown", onKeyDown, true);
-      previouslyFocused?.focus?.();
+      previouslyFocused?.focus?.({ preventScroll });
     };
-  }, [isOpen, containerRef, initialFocusRef]);
+  }, [isOpen, containerRef, initialFocusRef, preventScroll]);
 }
 
 /** true si el visitante pidio menos movimiento en el sistema operativo. */

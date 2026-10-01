@@ -139,6 +139,21 @@ p { margin: 0; color: var(--muted); }
 .btn-sm { height: 42px; padding: 0 18px; font-size: 14px; }
 .btn-lg { height: 58px; padding: 0 32px; font-size: 16px; }
 
+/* Movil: las acciones principales ocupan todo el ancho con una sola altura
+   (52px), para que los botones de cada seccion se vean parejos. Los
+   botones pequenos (.btn-sm) conservan su tamano. */
+@media (max-width: 640px) {
+  .btn-lg { height: 52px; padding: 0 24px; font-size: 15px; }
+  main .btn:not(.btn-sm) { width: 100%; }
+}
+
+/* Etiqueta larga en escritorio y corta en movil (selectores de dos opciones). */
+.label-short { display: none; }
+@media (max-width: 640px) {
+  .label-full { display: none; }
+  .label-short { display: inline; }
+}
+
 /* Halftone */
 .halftone {
   position: absolute; pointer-events: none;

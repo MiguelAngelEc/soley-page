@@ -231,8 +231,8 @@ export function Contact() {
                 background: "var(--bg-soft)", padding: 4, borderRadius: 999, marginTop: 6,
               }}>
                 {([
-                  { id: "menudeo", label: "Hogar" },
-                  { id: "mayoreo", label: "Empresa / Al por mayor" },
+                  { id: "menudeo", label: "Hogar", short: "Hogar" },
+                  { id: "mayoreo", label: "Empresa / Al por mayor", short: "Al por mayor" },
                 ] as const).map((t) => (
                   <button key={t.id} type="button" onClick={() => setForm({ ...form, type: t.id })}
                     aria-pressed={form.type === t.id}
@@ -242,8 +242,11 @@ export function Contact() {
                       background: form.type === t.id ? "white" : "transparent",
                       color: form.type === t.id ? "var(--soley-blue-deep)" : "var(--muted)",
                       boxShadow: form.type === t.id ? "var(--shadow-sm)" : "none",
-                      transition: "all .2s",
-                    }}>{t.label}</button>
+                      transition: "all .2s", whiteSpace: "nowrap",
+                    }}>
+                    <span className="label-full">{t.label}</span>
+                    <span className="label-short">{t.short}</span>
+                  </button>
                 ))}
               </div>
             </div>

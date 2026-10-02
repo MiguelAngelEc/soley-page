@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -15,7 +17,8 @@ const jbMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Soley · Amenities & Productos de Limpieza | Al por mayor y al por menor",
+  title:
+    "Soley · Amenities & Productos de Limpieza | Al por mayor y al por menor",
   description:
     "Fabricantes ecuatorianos de productos de limpieza profesionales. Detergente, cloro, jabón líquido, desinfectante, alcohol y gel antibacterial. Al por mayor y al por menor desde Ibarra.",
   keywords: [
@@ -51,7 +54,11 @@ export default function RootLayout({
       lang="es"
       className={`${jakarta.variable} ${jbMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <Analytics />
+        <SpeedInsights />
+      </body>
     </html>
   );
 }

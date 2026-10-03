@@ -4,7 +4,7 @@ import { useState, useEffect, useId, useRef } from "react";
 import type { Product } from "@/data/products";
 import { ArrowIcon, CloseIcon, WhatsAppIcon } from "@/components/shared/Icons";
 import { WhatsAppModal } from "@/components/shared/WhatsAppModal";
-import { useDialogA11y, useReducedMotionPreference } from "@/lib/a11y";
+import { useDialogA11y } from "@/lib/a11y";
 import Image from "next/image";
 
 interface ProductStageProps {
@@ -24,36 +24,14 @@ export function ProductStage({ product, initialPresentation, onClose }: ProductS
   const [quoteOpen, setQuoteOpen] = useState(false);
   const titleId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
-  const frameRef = useRef(0);
-  const reducedMotion = useReducedMotionPreference();
 
   const presentations = product.presentations;
   const total = presentations.length;
   const current = presentations[presentation];
-  // Palabra gigante de fondo: "CLORO", "DETERGENTE"...
-  const word = product.name.split(" ")[0].toUpperCase();
 
   useDialogA11y({ isOpen: true, onClose, containerRef });
 
   const go = (step: number) => setPresentation((i) => (i + step + total) % total);
-
-  useEffect(() => () => cancelAnimationFrame(frameRef.current), []);
-
-  // Inclinacion con el mouse, igual que la caneca del hero: escribe variables
-  // CSS (un frame por movimiento), sin estado de React.
-  function tilt(x: number, y: number) {
-    cancelAnimationFrame(frameRef.current);
-    frameRef.current = requestAnimationFrame(() => {
-      containerRef.current?.style.setProperty("--mx", x.toFixed(3));
-      containerRef.current?.style.setProperty("--my", y.toFixed(3));
-    });
-  }
-
-  function onArenaPointerMove(e: React.PointerEvent<HTMLDivElement>) {
-    if (reducedMotion || e.pointerType !== "mouse") return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    tilt(((e.clientX - rect.left) / rect.width) * 2 - 1, ((e.clientY - rect.top) / rect.height) * 2 - 1);
-  }
 
   // Flechas del teclado. Se ignoran mientras el formulario de cotizacion esta
   // abierto para no cambiar de presentacion al moverse dentro de un campo.
@@ -104,10 +82,9 @@ export function ProductStage({ product, initialPresentation, onClose }: ProductS
         </button>
       </div>
 
-      <div className="stage-arena" onPointerMove={onArenaPointerMove} onPointerLeave={() => tilt(0, 0)}>
-        <div className="stage-word" aria-hidden="true" style={{ "--chars": word.length } as React.CSSProperties}>
-          {word}
-        </div>
+      <div className="stage-arena">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="stage-logo" src="/efectos/logo-blanco.webp" alt="" aria-hidden="true" />
         <button type="button" className="stage-arrow stage-arrow-prev" onClick={() => go(-1)} aria-label="Presentación anterior">
           <ArrowIcon width={22} height={22} />
         </button>
@@ -115,19 +92,15 @@ export function ProductStage({ product, initialPresentation, onClose }: ProductS
           <div className="stage-glow" aria-hidden="true" />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img className="stage-pedestal" src="/efectos/pedestal.webp" alt="" aria-hidden="true" />
-          <div className="stage-shadow" aria-hidden="true">
-            <div className="stage-shadow-tilt" />
-          </div>
+          <div className="stage-shadow" aria-hidden="true" />
           <div className="stage-product">
-            <div className="stage-tilt">
-              <Image
-                src={current.image}
-                alt={`${product.name} - ${current.volume}`}
-                fill
-                sizes="(max-width: 980px) 80vw, 50vw"
-                style={{ objectFit: "contain" }}
-              />
-            </div>
+            <Image
+              src={current.image}
+              alt={`${product.name} - ${current.volume}`}
+              fill
+              sizes="(max-width: 980px) 80vw, 50vw"
+              style={{ objectFit: "contain" }}
+            />
           </div>
         </div>
         <button type="button" className="stage-arrow stage-arrow-next" onClick={() => go(1)} aria-label="Presentación siguiente">
@@ -245,17 +218,13 @@ export function ProductStage({ product, initialPresentation, onClose }: ProductS
           position: relative; min-height: 0;
           display: flex; align-items: center; justify-content: center;
           padding: 0 24px;
-          container-type: inline-size;
         }
-        /* Nombre gigante contorneado detras del producto; el tamano se ajusta
-           a la cantidad de letras para que "DESINFECTANTE" tambien quepa. */
-        .stage-word {
-          position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-62%);
-          text-align: center; white-space: nowrap; pointer-events: none; user-select: none;
-          font-size: min(calc(105cqw / var(--chars)), 170px);
-          overflow: hidden;
-          font-weight: 900; line-height: 1; letter-spacing: -0.02em;
-          color: transparent; -webkit-text-stroke: 1.5px rgba(255,255,255,0.14);
+        /* Logo Soley blanco translucido detras del producto (generado con
+           Higgsfield a partir del logo oficial). */
+        .stage-logo {
+          position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%);
+          width: min(78%, 560px); opacity: 0.1;
+          pointer-events: none; user-select: none;
         }
         /* Figura cuadrada: producto arriba (base al ~77% del alto) y la
            superficie del pedestal justo debajo. */
@@ -272,28 +241,16 @@ export function ProductStage({ product, initialPresentation, onClose }: ProductS
           position: absolute; left: 14%; width: 72%; top: 68%;
           opacity: 0.72; pointer-events: none;
         }
-        .stage-product { position: absolute; inset: 0 0 14%; }
-        .stage-tilt {
-          position: absolute; inset: 0;
+        .stage-product {
+          position: absolute; inset: 0 0 14%;
           filter: drop-shadow(0 24px 30px rgba(0,0,0,0.35));
-          transform: perspective(1000px)
-            translate3d(calc(var(--mx, 0) * 12px), calc(var(--my, 0) * 8px), 0)
-            rotateY(calc(var(--mx, 0) * 6deg)) rotateX(calc(var(--my, 0) * -4deg));
+          animation: product-float 4.5s ease-in-out infinite;
         }
         .stage-shadow {
           position: absolute; top: 74%; left: 30%; width: 40%; height: 6%; border-radius: 50%;
-        }
-        .stage-shadow-tilt {
-          position: absolute; inset: 0; border-radius: inherit;
           background: radial-gradient(ellipse, rgba(0,0,0,0.55) 0%, transparent 70%);
           filter: blur(6px);
-          transform: translate3d(calc(var(--mx, 0) * -14px), 0, 0);
         }
-        .stage-tilt, .stage-shadow-tilt {
-          /* Mismo rebote que la caneca del hero al seguir el mouse. */
-          transition: transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .stage-product { animation: product-float 4.5s ease-in-out infinite; }
         .stage-shadow { animation: product-float-shadow 4.5s ease-in-out infinite; }
         .stage-arrow {
           position: absolute; top: 50%; z-index: 2;
@@ -401,7 +358,6 @@ export function ProductStage({ product, initialPresentation, onClose }: ProductS
         }
         @media (prefers-reduced-motion: reduce) {
           .stage-product, .stage-shadow { animation: none; }
-          .stage-tilt, .stage-shadow-tilt { transform: none; transition: none; }
         }
         /* Movil horizontal: poca altura, producto y datos lado a lado. */
         @media (max-height: 500px) and (orientation: landscape) {

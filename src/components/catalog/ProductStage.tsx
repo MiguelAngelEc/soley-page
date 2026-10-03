@@ -98,13 +98,13 @@ export function ProductStage({ product, initialPresentation, onClose }: ProductS
       </div>
 
       <div className="stage-arena">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="stage-logo" src="/efectos/logo-blanco.webp" alt="" aria-hidden="true" />
         <button type="button" className="stage-arrow stage-arrow-prev" onClick={() => go(-1)} aria-label="Presentación anterior">
           <ArrowIcon width={22} height={22} />
         </button>
         <div className="stage-figure">
           <div className="stage-glow" aria-hidden="true" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="stage-logo" src="/efectos/logo-blanco.webp" alt="" aria-hidden="true" />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img className="stage-pedestal" src="/efectos/pedestal.webp" alt="" aria-hidden="true" />
           <div className="stage-shadow" aria-hidden="true" />
@@ -252,11 +252,11 @@ export function ProductStage({ product, initialPresentation, onClose }: ProductS
           display: flex; align-items: center; justify-content: center;
           padding: 0 24px;
         }
-        /* Logo Soley blanco translucido detras del producto (generado con
-           Higgsfield a partir del logo oficial). */
+        /* Logo Soley blanco translucido detras del producto, centrado en la
+           zona de la imagen (generado con Higgsfield a partir del logo oficial). */
         .stage-logo {
-          position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%);
-          width: min(78%, 560px); opacity: 0.1;
+          position: absolute; left: 50%; top: 28%; transform: translate(-50%, -50%);
+          width: 92%; opacity: 0.1;
           pointer-events: none; user-select: none;
         }
         /* Figura cuadrada: producto arriba (base al ~77% del alto) y la

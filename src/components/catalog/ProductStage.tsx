@@ -432,6 +432,13 @@ export function ProductStage({ product, initialPresentation, onPresentationChang
         .stage-arrow-prev { left: 24px; }
         .stage-arrow-prev svg { transform: rotate(180deg); }
         .stage-arrow-next { right: 24px; }
+        /* Pantallas tactiles: sin flechas, se cambia deslizando el dedo sobre
+           el producto o tocando las miniaturas. Se detecta por el tipo de
+           puntero y no por el ancho, asi una ventana angosta con mouse las
+           conserva. */
+        @media (hover: none) and (pointer: coarse) {
+          .stage-arrow { display: none; }
+        }
 
         .stage-roster {
           grid-area: roster;

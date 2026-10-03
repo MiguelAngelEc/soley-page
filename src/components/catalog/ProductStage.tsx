@@ -48,6 +48,28 @@ export function ProductStage({ product, initialPresentation, onClose }: ProductS
 
   const go = (step: number) => setView((v) => move(v, (v.index + step + total) % total));
 
+  // Deslizar con el dedo sobre el producto cambia de presentacion. El
+  // navegador conserva el scroll vertical (touch-action: pan-y) y cancela el
+  // gesto si empieza a desplazar la pagina.
+  const swipeRef = useRef<{ x: number; y: number; t: number } | null>(null);
+
+  function onArenaPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    if (e.pointerType === "mouse") return;
+    swipeRef.current = { x: e.clientX, y: e.clientY, t: e.timeStamp };
+  }
+
+  function onArenaPointerUp(e: React.PointerEvent<HTMLDivElement>) {
+    const start = swipeRef.current;
+    swipeRef.current = null;
+    if (!start) return;
+    const dx = e.clientX - start.x;
+    const dy = e.clientY - start.y;
+    const speed = Math.abs(dx) / Math.max(1, e.timeStamp - start.t);
+    // Horizontal y suficiente: 40px, o 20px si fue un gesto rapido.
+    const horizontal = Math.abs(dx) > Math.abs(dy) * 1.2;
+    if (horizontal && (Math.abs(dx) > 40 || (Math.abs(dx) > 20 && speed > 0.3))) go(dx < 0 ? 1 : -1);
+  }
+
   // Flechas del teclado. Se ignoran mientras el formulario de cotizacion esta
   // abierto para no cambiar de presentacion al moverse dentro de un campo.
   useEffect(() => {
@@ -97,7 +119,12 @@ export function ProductStage({ product, initialPresentation, onClose }: ProductS
         </button>
       </div>
 
-      <div className="stage-arena">
+      <div
+        className="stage-arena"
+        onPointerDown={onArenaPointerDown}
+        onPointerUp={onArenaPointerUp}
+        onPointerCancel={() => { swipeRef.current = null; }}
+      >
         <button type="button" className="stage-arrow stage-arrow-prev" onClick={() => go(-1)} aria-label="Presentación anterior">
           <ArrowIcon width={22} height={22} />
         </button>
@@ -251,6 +278,7 @@ export function ProductStage({ product, initialPresentation, onClose }: ProductS
           position: relative; min-height: 0;
           display: flex; align-items: center; justify-content: center;
           padding: 0 24px;
+          touch-action: pan-y;
         }
         /* Logo Soley blanco translucido detras del producto, centrado en la
            zona de la imagen (generado con Higgsfield a partir del logo oficial). */

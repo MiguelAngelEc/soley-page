@@ -33,7 +33,7 @@ export function Audience() {
             <div style={{
               position: "absolute",
               inset: 0,
-              backgroundImage: `linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.75)), url('/Img-fondo/img-familia.png')`,
+              backgroundImage: `linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.75)), url('/Img-fondo/img-familia.webp')`,
               backgroundSize: "cover",
               backgroundPosition: "center 20%",
               backgroundRepeat: "no-repeat",
@@ -110,7 +110,7 @@ export function Audience() {
             <div style={{
               position: "absolute",
               inset: 0,
-              backgroundImage: `linear-gradient(rgba(11,23,54,0.85), rgba(11,23,54,0.75)), url('/Img-fondo/img-trabajador.png')`,
+              backgroundImage: `linear-gradient(rgba(11,23,54,0.85), rgba(11,23,54,0.75)), url('/Img-fondo/img-trabajador.webp')`,
               backgroundSize: "cover",
               backgroundPosition: "center 20%",
               backgroundRepeat: "no-repeat",

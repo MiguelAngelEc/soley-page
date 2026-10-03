@@ -89,6 +89,7 @@ export function Instagram() {
                         src={t.image}
                         alt={t.title}
                         fill
+                        sizes="(max-width: 540px) 50vw, (max-width: 980px) 33vw, 200px"
                         style={{
                           objectFit: "cover",
                         }}

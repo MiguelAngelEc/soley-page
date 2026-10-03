@@ -24,6 +24,8 @@ interface ProductStageProps {
   product: Product;
   /** Presentacion que la tarjeta mostraba al abrir (1 L, 4 L o 20 L). */
   initialPresentation: number;
+  /** Cada cambio de presentacion se comparte con las tarjetas del catalogo. */
+  onPresentationChange: (index: number) => void;
   /** Se abre con la imagen de la tarjeta volando hasta aqui: sin subida inicial. */
   morph: boolean;
   onClose: () => void;
@@ -48,7 +50,7 @@ function move(view: StageView, index: number): StageView {
  * producto flota a un lado y sus presentaciones (1 L, 4 L, 20 L) se recorren
  * con flechas o teclado, como variantes del mismo personaje.
  */
-export function ProductStage({ product, initialPresentation, morph, onClose }: ProductStageProps) {
+export function ProductStage({ product, initialPresentation, onPresentationChange, morph, onClose }: ProductStageProps) {
   const [view, setView] = useState<StageView>({ index: initialPresentation, prev: -1, swap: 0 });
   const [quoteOpen, setQuoteOpen] = useState(false);
   const titleId = useId();
@@ -60,6 +62,10 @@ export function ProductStage({ product, initialPresentation, morph, onClose }: P
   const current = presentations[presentation];
 
   useDialogA11y({ isOpen: true, onClose, containerRef });
+
+  // Las tarjetas siguen al escenario: al cerrar, la tarjeta ya muestra el
+  // mismo tamano y la imagen vuelve volando a su lugar.
+  useEffect(() => { onPresentationChange(presentation); }, [presentation, onPresentationChange]);
 
   const go = (step: number) => setView((v) => move(v, (v.index + step + total) % total));
 

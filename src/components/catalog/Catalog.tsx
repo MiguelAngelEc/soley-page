@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import { products, categories } from "@/data/products";
-import type { ProductCategory, PresentationType } from "@/data/products";
+import type { Product, ProductCategory, PresentationType } from "@/data/products";
 import { ProductCard } from "./ProductCard";
 import { ProductStage } from "./ProductStage";
 import { useReveal } from "@/lib/hooks";
@@ -11,7 +11,7 @@ import { ArrowIcon, WhatsAppIcon, DocumentIcon, DownloadIcon } from "@/component
 export function Catalog() {
   const [cat, setCat] = useState<ProductCategory | "all">("all");
   const [mode, setMode] = useState<PresentationType>("menudeo");
-  const [stage, setStage] = useState<{ index: number; presentation: number } | null>(null);
+  const [stage, setStage] = useState<{ product: Product; presentation: number } | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [gridHeight, setGridHeight] = useState<number | "auto">("auto");
   const gridRef = useRef<HTMLDivElement | null>(null);
@@ -197,8 +197,8 @@ export function Catalog() {
               transition: "opacity 0.15s ease-out, transform 0.15s ease-out",
             }}
           >
-            {filtered.map((p, i) => (
-              <ProductCard key={p.id} product={p} onOpen={(presentation) => setStage({ index: i, presentation })} />
+            {filtered.map((p) => (
+              <ProductCard key={p.id} product={p} onOpen={(presentation) => setStage({ product: p, presentation })} />
             ))}
           </div>
         </div>
@@ -230,8 +230,7 @@ export function Catalog() {
 
       {stage && (
         <ProductStage
-          products={filtered}
-          initialIndex={stage.index}
+          product={stage.product}
           initialPresentation={stage.presentation}
           onClose={() => setStage(null)}
         />

@@ -313,24 +313,17 @@ export function Hero() {
         }
         .hero-caneca-area[data-ready="false"] .hero-caneca-shadow { opacity: 0; }
         .hero-caneca-area[data-ready="true"] .hero-caneca {
-          animation: hero-caneca-float 4.5s ease-in-out infinite;
+          animation: product-float 4.5s ease-in-out infinite;
         }
         .hero-caneca-area[data-ready="true"] .hero-caneca-shadow {
-          animation: hero-caneca-shadow 4.5s ease-in-out infinite;
+          animation: product-float-shadow 4.5s ease-in-out infinite;
         }
         .hero-caneca-area[data-running="false"] .hero-caneca,
         .hero-caneca-area[data-running="false"] .hero-caneca-shadow {
           animation-play-state: paused;
         }
-        /* Contenedores separados: flotacion y giro no compiten por transform. */
-        @keyframes hero-caneca-float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-12px); }
-        }
-        @keyframes hero-caneca-shadow {
-          0%, 100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(0.82); opacity: 0.7; }
-        }
+        /* Contenedores separados: flotacion y giro no compiten por transform.
+           Keyframes product-float* en globals.css. */
         @media (prefers-reduced-motion: reduce) {
           .hero-caneca-area .hero-caneca,
           .hero-caneca-area .hero-caneca-shadow { transform: none; animation: none !important; }

@@ -2,14 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { Product } from "@/data/products";
-import { ArrowIcon, WhatsAppIcon } from "@/components/shared/Icons";
+import { WhatsAppIcon } from "@/components/shared/Icons";
 import { WhatsAppModal } from "@/components/shared/WhatsAppModal";
 import { useReducedMotionPreference } from "@/lib/a11y";
 import Image from "next/image";
 
 export function ProductCard({ product, onOpen }: { product: Product; onOpen: (presentation: number, image: HTMLElement | null) => void }) {
   const [hoverCard, setHoverCard] = useState(false);
-  const [hoverImage, setHoverImage] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [quoteOpen, setQuoteOpen] = useState(false);
@@ -108,10 +107,6 @@ export function ProductCard({ product, onOpen }: { product: Product; onOpen: (pr
             border: "none",
             width: "100%",
           }}
-          onMouseEnter={() => setHoverImage(true)}
-          onMouseLeave={() => setHoverImage(false)}
-          onFocus={() => setHoverImage(true)}
-          onBlur={() => setHoverImage(false)}
           onClick={(e) => onOpen(currentIndex, e.currentTarget.querySelector("img"))}
           aria-label={`Ver detalle de ${product.name}`}
         >
@@ -129,24 +124,6 @@ export function ProductCard({ product, onOpen }: { product: Product; onOpen: (pr
             }}
             priority
           />
-
-          {/* Overlay Ver detalle - Solo sobre la imagen */}
-          <div style={{
-            position: "absolute",
-            inset: 0,
-            background: "linear-gradient(0deg, rgba(30,91,186,0.92) 0%, rgba(30,91,186,0.6) 100%)",
-            opacity: hoverImage ? 1 : 0,
-            transition: "opacity .25s",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "white",
-            borderRadius: 16,
-          }}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 8, fontWeight: 700, fontSize: 15 }}>
-              Ver detalle <ArrowIcon width={16} height={16} />
-            </span>
-          </div>
         </button>
 
         {/* Indicadores de presentación */}

@@ -10,6 +10,8 @@ import { useDialogA11y, useReducedMotionPreference } from "@/lib/a11y";
 
 /** Breve pausa tras la primera pintura antes de mostrar el anuncio. */
 const OPEN_DELAY_MS = 700;
+/** Pantallas donde el anuncio mide ~360px: basta el video de 720px. */
+const MOBILE_QUERY = "(max-width: 640px)";
 /** Debe coincidir con la transicion de salida del CSS. */
 const CLOSE_MS = 380;
 
@@ -136,7 +138,7 @@ export function PromoAdModal() {
 
   const product = products.find((p) => p.id === promo.productId);
   if (!promo.active || !promo.ad || !product) return null;
-  const { video, poster } = promo.ad;
+  const { video, videoMobile, poster } = promo.ad;
 
   return (
     <>
@@ -180,7 +182,7 @@ export function PromoAdModal() {
                 <video
                   ref={videoRef}
                   className={`ad-video${videoPlaying ? " playing" : ""}`}
-                  src={video}
+                  src={videoMobile && window.matchMedia(MOBILE_QUERY).matches ? videoMobile : video}
                   muted
                   loop
                   playsInline

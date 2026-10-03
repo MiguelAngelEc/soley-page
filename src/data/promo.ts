@@ -16,6 +16,8 @@ export interface Promo {
    */
   ad: {
     video: string;
+    /** version liviana (720px) para pantallas de movil */
+    videoMobile?: string;
     /** fotograma final; se muestra mientras carga y con movimiento reducido */
     poster: string;
   } | null;
@@ -29,6 +31,7 @@ export const promo: Promo = {
   price: "12,50",
   ad: {
     video: "/promo/caneca-oferta.mp4",
+    videoMobile: "/promo/caneca-oferta-mobile.mp4",
     poster: "/promo/caneca-oferta.jpg",
   },
 };

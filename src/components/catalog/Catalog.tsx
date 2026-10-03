@@ -2,16 +2,16 @@
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import { products, categories } from "@/data/products";
-import type { Product, ProductCategory, PresentationType } from "@/data/products";
+import type { ProductCategory, PresentationType } from "@/data/products";
 import { ProductCard } from "./ProductCard";
-import { ProductModal } from "./ProductModal";
+import { ProductStage } from "./ProductStage";
 import { useReveal } from "@/lib/hooks";
 import { ArrowIcon, WhatsAppIcon, DocumentIcon, DownloadIcon } from "@/components/shared/Icons";
 
 export function Catalog() {
   const [cat, setCat] = useState<ProductCategory | "all">("all");
   const [mode, setMode] = useState<PresentationType>("menudeo");
-  const [modalProduct, setModalProduct] = useState<Product | null>(null);
+  const [stage, setStage] = useState<{ index: number; presentation: number } | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [gridHeight, setGridHeight] = useState<number | "auto">("auto");
   const gridRef = useRef<HTMLDivElement | null>(null);
@@ -197,8 +197,8 @@ export function Catalog() {
               transition: "opacity 0.15s ease-out, transform 0.15s ease-out",
             }}
           >
-            {filtered.map((p) => (
-              <ProductCard key={p.id} product={p} onOpen={() => setModalProduct(p)} />
+            {filtered.map((p, i) => (
+              <ProductCard key={p.id} product={p} onOpen={(presentation) => setStage({ index: i, presentation })} />
             ))}
           </div>
         </div>
@@ -228,7 +228,14 @@ export function Catalog() {
         </div>
       </div>
 
-      {modalProduct && (<ProductModal product={modalProduct} onClose={() => setModalProduct(null)} />)}
+      {stage && (
+        <ProductStage
+          products={filtered}
+          initialIndex={stage.index}
+          initialPresentation={stage.presentation}
+          onClose={() => setStage(null)}
+        />
+      )}
 
       <style>{`
         .catalog-controls {

@@ -7,7 +7,7 @@ import { WhatsAppModal } from "@/components/shared/WhatsAppModal";
 import { useReducedMotionPreference } from "@/lib/a11y";
 import Image from "next/image";
 
-export function ProductCard({ product, onOpen }: { product: Product; onOpen: () => void }) {
+export function ProductCard({ product, onOpen }: { product: Product; onOpen: (presentation: number) => void }) {
   const [hoverCard, setHoverCard] = useState(false);
   const [hoverImage, setHoverImage] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -112,7 +112,7 @@ export function ProductCard({ product, onOpen }: { product: Product; onOpen: () 
           onMouseLeave={() => setHoverImage(false)}
           onFocus={() => setHoverImage(true)}
           onBlur={() => setHoverImage(false)}
-          onClick={onOpen}
+          onClick={() => onOpen(currentIndex)}
           aria-label={`Ver detalle de ${product.name}`}
         >
           <Image

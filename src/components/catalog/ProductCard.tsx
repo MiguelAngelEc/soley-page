@@ -1,26 +1,25 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { isLightColor } from "@/data/products";
 import type { Product } from "@/data/products";
 import { WhatsAppIcon } from "@/components/shared/Icons";
 import { WhatsAppModal } from "@/components/shared/WhatsAppModal";
-import { useReducedMotionPreference } from "@/lib/a11y";
 import Image from "next/image";
 import { preloadStageImage } from "./ProductStage";
 
-export function ProductCard({ product, onOpen, paused }: {
+export function ProductCard({ product, presentation, onSelectPresentation, onInteract, onOpen }: {
   product: Product;
-  onOpen: (presentation: number, image: HTMLElement | null) => void;
-  /** Detiene la rotacion automatica (mientras el escenario esta abierto). */
-  paused: boolean;
+  /** Presentacion visible, compartida por todas las tarjetas (la decide Catalog). */
+  presentation: number;
+  onSelectPresentation: (index: number) => void;
+  /** Avisa si el visitante esta sobre la tarjeta (hover o foco por teclado) para pausar el slider. */
+  onInteract: (active: boolean) => void;
+  /** Abre el escenario; recibe el boton de la imagen para la transicion. */
+  onOpen: (card: HTMLElement) => void;
 }) {
   const [hoverCard, setHoverCard] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const [quoteOpen, setQuoteOpen] = useState(false);
-  const [autoplayPaused, setAutoplayPaused] = useState(false);
-  const reducedMotion = useReducedMotionPreference();
   // Un color muy claro (Gel, blanco) no se lee sobre la tarjeta: los textos
   // pasan a gris y los puntos blancos llevan un borde.
   const light = isLightColor(product.color);
@@ -29,45 +28,16 @@ export function ProductCard({ product, onOpen, paused }: {
 
   // Todas las presentaciones disponibles (las 3)
   const allPresentations = product.presentations;
-  const currentPresentation = allPresentations[currentIndex];
-
-  // Función para cambiar de presentación con efecto fade
-  const changePresentation = useCallback((newIndex: number) => {
-    if (newIndex === currentIndex || isTransitioning) return;
-
-    setIsTransitioning(true);
-
-    setTimeout(() => {
-      setCurrentIndex(newIndex);
-
-      setTimeout(() => {
-        setIsTransitioning(false);
-      }, 50);
-    }, 200);
-  }, [currentIndex, isTransitioning]);
-
-  // Rotación automática cada 4s, salvo que el visitante pida menos movimiento
-  // o este interactuando con la tarjeta (hover o foco por teclado): sin eso
-  // no hay forma de detener el cambio automatico (WCAG 2.2.2).
-  useEffect(() => {
-    if (reducedMotion || autoplayPaused || paused) return;
-    const interval = setInterval(() => {
-      if (!isTransitioning) {
-        changePresentation((currentIndex + 1) % allPresentations.length);
-      }
-    }, 4000);
-
-    return () => clearInterval(interval);
-  }, [currentIndex, isTransitioning, allPresentations.length, changePresentation, reducedMotion, autoplayPaused, paused]);
+  const currentPresentation = allPresentations[presentation];
 
   return (
     <article
-      onMouseEnter={() => { setHoverCard(true); setAutoplayPaused(true); }}
-      onMouseLeave={() => { setHoverCard(false); setAutoplayPaused(false); }}
+      onMouseEnter={() => { setHoverCard(true); onInteract(true); }}
+      onMouseLeave={() => { setHoverCard(false); onInteract(false); }}
       // Pausa por foco solo con teclado: al cerrar el escenario el foco vuelve
       // aqui por programa y no debe dejar el slider detenido.
-      onFocus={(e) => { if (e.target.matches(":focus-visible")) setAutoplayPaused(true); }}
-      onBlur={() => setAutoplayPaused(false)}
+      onFocus={(e) => { if (e.target.matches(":focus-visible")) onInteract(true); }}
+      onBlur={() => onInteract(false)}
       style={{
         background: "white", borderRadius: 24, overflow: "hidden",
         border: "1px solid var(--border)", cursor: "default",
@@ -103,19 +73,14 @@ export function ProductCard({ product, onOpen, paused }: {
           {product.categoryLabel}
         </div>
 
-        {/* Contenedor de la imagen con fade */}
+        {/* Las 3 presentaciones apiladas: la visible tiene opacidad 1 y el
+            cambio es un fundido cruzado por CSS, sin temporizadores. */}
         <button
           type="button"
           className="product-card-open-btn"
           style={{
             position: "absolute",
             inset: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 32,
-            opacity: isTransitioning ? 0 : 1,
-            transition: "opacity 0.2s ease-out",
             cursor: "pointer",
             background: "none",
             border: "none",
@@ -124,23 +89,37 @@ export function ProductCard({ product, onOpen, paused }: {
           onPointerEnter={() => preloadStageImage(currentPresentation.image)}
           onTouchStart={() => preloadStageImage(currentPresentation.image)}
           onFocus={() => preloadStageImage(currentPresentation.image)}
-          onClick={(e) => onOpen(currentIndex, e.currentTarget.querySelector("img"))}
+          onClick={(e) => onOpen(e.currentTarget)}
           aria-label={`Ver detalle de ${product.name}`}
         >
-          <Image
-            src={currentPresentation.image}
-            alt={`${product.name} - ${currentPresentation.volume}`}
-            width={220}
-            height={220}
-            style={{
-              objectFit: "contain",
-              maxWidth: "100%",
-              maxHeight: "100%",
-              filter: hoverCard ? "drop-shadow(0 20px 40px rgba(11,23,54,0.18))" : "drop-shadow(0 10px 25px rgba(11,23,54,0.12))",
-              transition: "filter 0.25s",
-            }}
-            priority
-          />
+          {allPresentations.map((p, i) => (
+            <div
+              key={p.size}
+              data-active={i === presentation ? "" : undefined}
+              style={{
+                position: "absolute", inset: 32,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                opacity: i === presentation ? 1 : 0,
+                transition: "opacity 0.45s ease",
+              }}
+            >
+              <Image
+                src={p.image}
+                alt={i === presentation ? `${product.name} - ${p.volume}` : ""}
+                width={220}
+                height={220}
+                style={{
+                  objectFit: "contain",
+                  maxWidth: "100%",
+                  maxHeight: "100%",
+                  filter: hoverCard ? "drop-shadow(0 20px 40px rgba(11,23,54,0.18))" : "drop-shadow(0 10px 25px rgba(11,23,54,0.12))",
+                  transition: "filter 0.25s",
+                }}
+                priority={i === 0}
+                loading="eager"
+              />
+            </div>
+          ))}
         </button>
 
         {/* Indicadores de presentación */}
@@ -159,21 +138,21 @@ export function ProductCard({ product, onOpen, paused }: {
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                changePresentation(index);
+                onSelectPresentation(index);
               }}
               style={{
                 padding: 8, background: "none", border: "none", cursor: "pointer",
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}
               aria-label={`Ver presentación ${allPresentations[index].volume}`}
-              aria-current={currentIndex === index ? "true" : undefined}
+              aria-current={presentation === index ? "true" : undefined}
             >
               <span style={{
-                width: currentIndex === index ? 24 : 8,
+                width: presentation === index ? 24 : 8,
                 height: 8,
                 borderRadius: 999,
-                background: currentIndex === index ? product.color : "rgba(0,0,0,0.2)",
-                boxShadow: currentIndex === index ? dotRing : "none",
+                background: presentation === index ? product.color : "rgba(0,0,0,0.2)",
+                boxShadow: presentation === index ? dotRing : "none",
                 transition: "all 0.25s",
                 display: "block",
               }} />
@@ -193,8 +172,6 @@ export function ProductCard({ product, onOpen, paused }: {
           display: "flex",
           alignItems: "center",
           gap: 8,
-          opacity: isTransitioning ? 0 : 1,
-          transition: "opacity 0.2s ease-out",
           zIndex: 2,
         }}>
           <div style={{ fontSize: 10, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
@@ -226,8 +203,7 @@ export function ProductCard({ product, onOpen, paused }: {
             gap: 12,
             width: "100%",
             textAlign: "left",
-            opacity: isTransitioning ? 0 : 1,
-            transition: "opacity 0.2s ease-out, border-color 0.2s, background 0.2s",
+            transition: "border-color 0.2s, background 0.2s",
           }}
           onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--border-strong)"; e.currentTarget.style.background = "white"; }}
           onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.background = "var(--bg-soft)"; }}

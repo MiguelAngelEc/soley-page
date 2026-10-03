@@ -7,7 +7,7 @@ import type { Product, ProductCategory, PresentationType } from "@/data/products
 import { ProductCard } from "./ProductCard";
 import { ProductStage } from "./ProductStage";
 import { useReveal } from "@/lib/hooks";
-import { prefersReducedMotion } from "@/lib/a11y";
+import { prefersReducedMotion, useReducedMotionPreference } from "@/lib/a11y";
 import { ArrowIcon, WhatsAppIcon, DocumentIcon, DownloadIcon } from "@/components/shared/Icons";
 
 export function Catalog() {
@@ -15,10 +15,28 @@ export function Catalog() {
   const [mode, setMode] = useState<PresentationType>("menudeo");
   const [stage, setStage] = useState<{
     product: Product;
-    presentation: number;
-    /** Imagen de la tarjeta para la transicion de ida y vuelta (null = sin transicion). */
-    cardImage: HTMLElement | null;
+    /** Boton de imagen de la tarjeta para la transicion de ida y vuelta (null = sin transicion). */
+    card: HTMLElement | null;
   } | null>(null);
+
+  // Presentacion visible en TODAS las tarjetas (0 = 1 L, 1 = 4 L, 2 = 20 L) y
+  // en el escenario: una sola fuente de verdad, asi nunca se mezclan tamanos y
+  // lo que se elige en el escenario es lo que se ve al volver a la tarjeta.
+  const [presentation, setPresentation] = useState(0);
+  // El visitante esta sobre una tarjeta (hover o foco con teclado).
+  const [interacting, setInteracting] = useState(false);
+  const reducedMotion = useReducedMotionPreference();
+  const sliderPaused = stage !== null || interacting || reducedMotion;
+  const presentationCount = products[0].presentations.length;
+
+  // Un solo reloj para todas las tarjetas. Se reprograma en cada cambio, asi
+  // que si el visitante elige un tamano a mano, el siguiente avance espera
+  // otros 4 s completos.
+  useEffect(() => {
+    if (sliderPaused) return;
+    const timer = setTimeout(() => setPresentation((p) => (p + 1) % presentationCount), 4000);
+    return () => clearTimeout(timer);
+  }, [presentation, sliderPaused, presentationCount]);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [gridHeight, setGridHeight] = useState<number | "auto">("auto");
   const gridRef = useRef<HTMLDivElement | null>(null);
@@ -42,14 +60,18 @@ export function Catalog() {
     preload("/efectos/logo-blanco.webp", { as: "image" });
   };
 
-  const openStage = (product: Product, presentation: number, cardImage: HTMLElement | null) => {
+  // Imagen visible de la tarjeta en este momento (la capa activa).
+  const activeCardImage = (card: HTMLElement | null) => card?.querySelector<HTMLElement>("[data-active] img") ?? null;
+
+  const openStage = (product: Product, card: HTMLElement) => {
+    const cardImage = activeCardImage(card);
     if (!cardImage || !document.startViewTransition || prefersReducedMotion()) {
-      setStage({ product, presentation, cardImage: null });
+      setStage({ product, card: null });
       return;
     }
     cardImage.style.viewTransitionName = "stage-product";
     document.startViewTransition(async () => {
-      flushSync(() => setStage({ product, presentation, cardImage }));
+      flushSync(() => setStage({ product, card }));
       cardImage.style.viewTransitionName = "";
       // La captura del estado nuevo se toma al terminar esta funcion: se
       // espera (maximo 400 ms) a que la imagen grande y el pedestal esten
@@ -63,7 +85,9 @@ export function Catalog() {
   };
 
   const closeStage = () => {
-    const cardImage = stage?.cardImage;
+    // Se busca al cerrar: si en el escenario se cambio de tamano, la tarjeta
+    // ya muestra ese mismo tamano y la imagen vuelve a su lugar exacto.
+    const cardImage = activeCardImage(stage?.card ?? null);
     if (!cardImage?.isConnected || !document.startViewTransition || prefersReducedMotion()) {
       setStage(null);
       return;
@@ -253,7 +277,14 @@ export function Catalog() {
             }}
           >
             {filtered.map((p) => (
-              <ProductCard key={p.id} product={p} paused={stage !== null} onOpen={(presentation, image) => openStage(p, presentation, image)} />
+              <ProductCard
+                key={p.id}
+                product={p}
+                presentation={presentation}
+                onSelectPresentation={setPresentation}
+                onInteract={setInteracting}
+                onOpen={(card) => openStage(p, card)}
+              />
             ))}
           </div>
         </div>
@@ -286,8 +317,9 @@ export function Catalog() {
       {stage && (
         <ProductStage
           product={stage.product}
-          initialPresentation={stage.presentation}
-          morph={stage.cardImage !== null}
+          initialPresentation={presentation}
+          onPresentationChange={setPresentation}
+          morph={stage.card !== null}
           onClose={closeStage}
         />
       )}

@@ -1,28 +1,15 @@
 "use client";
 
-import { useState, useRef, useEffect, useId } from "react";
+import { useState, useRef, useId } from "react";
 import { useReveal } from "@/lib/hooks";
 import { faqs } from "@/data/faqs";
 import { PlusIcon, WhatsAppIcon } from "@/components/shared/Icons";
 
 export function FAQ() {
   const [open, setOpen] = useState<number>(0);
-  const [heights, setHeights] = useState<number[]>([]);
   const sectionRef = useRef<HTMLElement | null>(null);
-  const contentRefs = useRef<(HTMLDivElement | null)[]>([]);
   const baseId = useId();
   useReveal(sectionRef);
-
-  useEffect(() => {
-    const calculateHeights = () => {
-      const newHeights = contentRefs.current.map(ref => ref?.scrollHeight || 0);
-      setHeights(newHeights);
-    };
-
-    calculateHeights();
-    window.addEventListener("resize", calculateHeights);
-    return () => window.removeEventListener("resize", calculateHeights);
-  }, []);
 
   return (
     <section ref={sectionRef} className="section-y" style={{ background: "white" }}>
@@ -72,13 +59,13 @@ export function FAQ() {
                   aria-labelledby={buttonId}
                   aria-hidden={!isOpen}
                   style={{
-                    maxHeight: isOpen ? (heights[i] || 400) : 0,
-                    overflow: "hidden",
-                    transition: "max-height .3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    // Filas 0fr/1fr: anima a la altura real sin medirla con JS
+                    // (medir scrollHeight al montar forzaba un reflow).
+                    display: "grid",
+                    gridTemplateRows: isOpen ? "1fr" : "0fr",
+                    transition: "grid-template-rows .3s cubic-bezier(0.4, 0, 0.2, 1)",
                   }}>
-                  <div ref={el => {
-                    if (el) contentRefs.current[i] = el;
-                  }}>
+                  <div style={{ overflow: "hidden" }}>
                     <p style={{ padding: "0 24px 22px", fontSize: 14.5, color: "var(--muted)", lineHeight: 1.65 }}>{f.a}</p>
                   </div>
                 </div>

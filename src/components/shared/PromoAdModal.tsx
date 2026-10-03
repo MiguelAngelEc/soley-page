@@ -4,7 +4,7 @@ import { useState, useId, useRef, useEffect } from "react";
 import Image from "next/image";
 import { promo } from "@/data/promo";
 import { products } from "@/data/products";
-import { WhatsAppModal } from "@/components/shared/WhatsAppModal";
+import { LazyWhatsAppModal as WhatsAppModal } from "@/components/shared/LazyWhatsAppModal";
 import { CloseIcon, WhatsAppIcon } from "@/components/shared/Icons";
 import { useDialogA11y, useReducedMotionPreference } from "@/lib/a11y";
 
@@ -172,16 +172,15 @@ export function PromoAdModal() {
                 alt=""
                 width={1080}
                 height={1350}
+                sizes="(max-width: 600px) 100vw, 560px"
                 loading="eager"
                 fetchPriority="high"
-                unoptimized
               />
               {scrollLocked && !reducedMotion && !videoFailed && (
                 <video
                   ref={videoRef}
                   className={`ad-video${videoPlaying ? " playing" : ""}`}
                   src={video}
-                  poster={poster}
                   muted
                   loop
                   playsInline

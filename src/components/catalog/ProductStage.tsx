@@ -4,7 +4,7 @@ import { useState, useEffect, useId, useRef } from "react";
 import { isLightColor } from "@/data/products";
 import type { Product } from "@/data/products";
 import { ArrowIcon, CloseIcon, WhatsAppIcon } from "@/components/shared/Icons";
-import { WhatsAppModal } from "@/components/shared/WhatsAppModal";
+import { LazyWhatsAppModal as WhatsAppModal } from "@/components/shared/LazyWhatsAppModal";
 import { useDialogA11y } from "@/lib/a11y";
 import { preload } from "react-dom";
 import Image, { getImageProps } from "next/image";

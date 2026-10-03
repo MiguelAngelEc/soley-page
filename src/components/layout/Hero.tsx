@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ArrowIcon, WhatsAppIcon } from "@/components/shared/Icons";
-import { WhatsAppModal } from "@/components/shared/WhatsAppModal";
+import { LazyWhatsAppModal as WhatsAppModal } from "@/components/shared/LazyWhatsAppModal";
 import { HeroBubbles } from "@/components/layout/HeroBubbles";
 import { useReducedMotionPreference } from "@/lib/a11y";
 import Image from "next/image";
@@ -271,7 +271,7 @@ export function Hero() {
 
       <style>{`
         .hero-section {
-          background: linear-gradient(rgba(255,255,255,0.75), rgba(255,255,255,0.75)), url('/Img-fondo/Img-fondo.png');
+          background: linear-gradient(rgba(255,255,255,0.75), rgba(255,255,255,0.75)), url('/Img-fondo/Img-fondo.webp');
           background-size: contain;
           background-position: 25% center;
           background-repeat: no-repeat;

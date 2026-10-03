@@ -24,6 +24,8 @@ const nextConfig: NextConfig = {
   // Turbopack lo tomaba como raiz, ampliando el alcance del build (AUD-007).
   turbopack: { root: __dirname },
   poweredByHeader: false,
+  // El CSS total pesa ~5 KB: va dentro del HTML y deja de bloquear el render.
+  experimental: { inlineCss: true },
   async headers() {
     return [
       {

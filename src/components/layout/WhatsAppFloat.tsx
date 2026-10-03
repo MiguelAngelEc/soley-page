@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { WhatsAppIcon } from "@/components/shared/Icons";
-import { WhatsAppModal } from "@/components/shared/WhatsAppModal";
+import { LazyWhatsAppModal as WhatsAppModal } from "@/components/shared/LazyWhatsAppModal";
 
 export function WhatsAppFloat() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -33,7 +33,6 @@ export function WhatsAppFloat() {
             justifyContent: "center",
             boxShadow: "0 14px 30px rgba(37,211,102,0.40)",
             position: "relative",
-            animation: "pulse 2.5s ease infinite",
             border: "none",
             cursor: "pointer",
           }}
@@ -66,13 +65,18 @@ export function WhatsAppFloat() {
       />
 
       <style>{`
-        @keyframes pulse {
-          0%, 100% {
-            box-shadow: 0 14px 30px rgba(37,211,102,0.40), 0 0 0 0 rgba(37,211,102,0.4);
-          }
-          50% {
-            box-shadow: 0 14px 30px rgba(37,211,102,0.40), 0 0 0 16px rgba(37,211,102,0);
-          }
+        /* Anillo de pulso en un pseudo-elemento: anima solo transform y
+           opacity (compuestos en GPU) en vez de box-shadow. */
+        .whatsapp-float-btn::before {
+          content: "";
+          position: absolute; inset: 0; z-index: -1;
+          border-radius: inherit;
+          background: rgba(37,211,102,0.4);
+          animation: whatsapp-pulse 2.5s ease infinite;
+        }
+        @keyframes whatsapp-pulse {
+          0% { transform: scale(1); opacity: 1; }
+          50%, 100% { transform: scale(1.5); opacity: 0; }
         }
 
         @media (max-width: 640px) {

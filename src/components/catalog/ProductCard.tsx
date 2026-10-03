@@ -4,7 +4,7 @@ import { useState } from "react";
 import { isLightColor } from "@/data/products";
 import type { Product } from "@/data/products";
 import { WhatsAppIcon } from "@/components/shared/Icons";
-import { WhatsAppModal } from "@/components/shared/WhatsAppModal";
+import { LazyWhatsAppModal as WhatsAppModal } from "@/components/shared/LazyWhatsAppModal";
 import Image from "next/image";
 import { preloadStageImage } from "./ProductStage";
 
@@ -115,8 +115,6 @@ export function ProductCard({ product, presentation, onSelectPresentation, onInt
                   filter: hoverCard ? "drop-shadow(0 20px 40px rgba(11,23,54,0.18))" : "drop-shadow(0 10px 25px rgba(11,23,54,0.12))",
                   transition: "filter 0.25s",
                 }}
-                priority={i === 0}
-                loading="eager"
               />
             </div>
           ))}

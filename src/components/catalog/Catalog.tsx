@@ -1,17 +1,24 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
+import { flushSync, preload } from "react-dom";
 import { products, categories } from "@/data/products";
 import type { Product, ProductCategory, PresentationType } from "@/data/products";
 import { ProductCard } from "./ProductCard";
-import { ProductModal } from "./ProductModal";
+import { ProductStage } from "./ProductStage";
 import { useReveal } from "@/lib/hooks";
+import { prefersReducedMotion } from "@/lib/a11y";
 import { ArrowIcon, WhatsAppIcon, DocumentIcon, DownloadIcon } from "@/components/shared/Icons";
 
 export function Catalog() {
   const [cat, setCat] = useState<ProductCategory | "all">("all");
   const [mode, setMode] = useState<PresentationType>("menudeo");
-  const [modalProduct, setModalProduct] = useState<Product | null>(null);
+  const [stage, setStage] = useState<{
+    product: Product;
+    presentation: number;
+    /** Imagen de la tarjeta para la transicion de ida y vuelta (null = sin transicion). */
+    cardImage: HTMLElement | null;
+  } | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [gridHeight, setGridHeight] = useState<number | "auto">("auto");
   const gridRef = useRef<HTMLDivElement | null>(null);
@@ -22,6 +29,51 @@ export function Catalog() {
     if (cat === "all") return products;
     return products.filter((p) => p.category === cat);
   }, [cat]);
+
+  // La imagen de la tarjeta "vuela" hasta el escenario y vuelve al cerrar
+  // (View Transitions API). El nombre compartido vive en la imagen de la
+  // tarjeta solo en el estado viejo de la transicion; el escenario lo lleva
+  // en la presentacion visible. Sin soporte o con menos movimiento, se abre
+  // sin transicion y el producto sube desde el pedestal.
+  // Recursos fijos del escenario: se piden en cuanto el visitante se acerca a
+  // una tarjeta (no al cargar la pagina) para que esten listos al abrir.
+  const preloadStageAssets = () => {
+    preload("/efectos/pedestal.webp", { as: "image" });
+    preload("/efectos/logo-blanco.webp", { as: "image" });
+  };
+
+  const openStage = (product: Product, presentation: number, cardImage: HTMLElement | null) => {
+    if (!cardImage || !document.startViewTransition || prefersReducedMotion()) {
+      setStage({ product, presentation, cardImage: null });
+      return;
+    }
+    cardImage.style.viewTransitionName = "stage-product";
+    document.startViewTransition(async () => {
+      flushSync(() => setStage({ product, presentation, cardImage }));
+      cardImage.style.viewTransitionName = "";
+      // La captura del estado nuevo se toma al terminar esta funcion: se
+      // espera (maximo 400 ms) a que la imagen grande y el pedestal esten
+      // decodificados para que la imagen no vuele hacia un hueco.
+      const images = [...document.querySelectorAll<HTMLImageElement>(".stage-layer[data-state='in'] img, .stage-pedestal")];
+      await Promise.race([
+        Promise.all(images.map((img) => img.decode().catch(() => {}))),
+        new Promise((resolve) => setTimeout(resolve, 400)),
+      ]);
+    });
+  };
+
+  const closeStage = () => {
+    const cardImage = stage?.cardImage;
+    if (!cardImage?.isConnected || !document.startViewTransition || prefersReducedMotion()) {
+      setStage(null);
+      return;
+    }
+    const transition = document.startViewTransition(() => {
+      flushSync(() => setStage(null));
+      cardImage.style.viewTransitionName = "stage-product";
+    });
+    transition.finished.finally(() => { cardImage.style.viewTransitionName = ""; });
+  };
 
   const handleCategoryChange = (newCat: ProductCategory | "all") => {
     if (newCat === cat) return;
@@ -191,6 +243,9 @@ export function Catalog() {
         >
           <div
             className="catalog-grid reveal-stagger"
+            onPointerEnter={preloadStageAssets}
+            onTouchStart={preloadStageAssets}
+            onFocus={preloadStageAssets}
             style={{
               opacity: isTransitioning ? 0 : 1,
               transform: isTransitioning ? "translateY(10px)" : "translateY(0)",
@@ -198,7 +253,7 @@ export function Catalog() {
             }}
           >
             {filtered.map((p) => (
-              <ProductCard key={p.id} product={p} onOpen={() => setModalProduct(p)} />
+              <ProductCard key={p.id} product={p} paused={stage !== null} onOpen={(presentation, image) => openStage(p, presentation, image)} />
             ))}
           </div>
         </div>
@@ -228,7 +283,14 @@ export function Catalog() {
         </div>
       </div>
 
-      {modalProduct && (<ProductModal product={modalProduct} onClose={() => setModalProduct(null)} />)}
+      {stage && (
+        <ProductStage
+          product={stage.product}
+          initialPresentation={stage.presentation}
+          morph={stage.cardImage !== null}
+          onClose={closeStage}
+        />
+      )}
 
       <style>{`
         .catalog-controls {

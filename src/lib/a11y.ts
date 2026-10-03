@@ -10,6 +10,13 @@ function isRendered(el: HTMLElement): boolean {
   return el.getClientRects().length > 0;
 }
 
+/**
+ * Dialogos abiertos, del mas antiguo al mas reciente. Con modales anidados
+ * (el formulario de cotizacion dentro del escenario del catalogo) solo el de
+ * arriba responde a Escape y Tab; si no, Escape cerraria los dos a la vez.
+ */
+const openDialogs: symbol[] = [];
+
 interface DialogA11yOptions {
   isOpen: boolean;
   onClose: () => void;
@@ -42,12 +49,15 @@ export function useDialogA11y({ isOpen, onClose, containerRef, initialFocusRef, 
     if (!isOpen) return;
 
     const previouslyFocused = document.activeElement as HTMLElement | null;
+    const token = Symbol("dialog");
+    openDialogs.push(token);
 
     const target = initialFocusRef?.current ?? containerRef.current?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
     // Deja pintar el modal antes de mover el foco.
     const raf = requestAnimationFrame(() => target?.focus({ preventScroll }));
 
     function onKeyDown(e: KeyboardEvent) {
+      if (openDialogs[openDialogs.length - 1] !== token) return;
       if (e.key === "Escape") {
         e.stopPropagation();
         onCloseRef.current();
@@ -76,6 +86,7 @@ export function useDialogA11y({ isOpen, onClose, containerRef, initialFocusRef, 
 
     return () => {
       cancelAnimationFrame(raf);
+      openDialogs.splice(openDialogs.indexOf(token), 1);
       document.removeEventListener("keydown", onKeyDown, true);
       previouslyFocused?.focus?.({ preventScroll });
     };

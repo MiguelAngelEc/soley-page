@@ -46,12 +46,12 @@ export const products: Product[] = [
       { k: "Aroma", v: "Neutro / floral" },
     ],
     presentations: [
-      { size: "Botella 1 L", type: "menudeo", presentationSize: "litro", volume: "1 L", price: 1, image: "/productos/Gel Antibacterial  Litro.png" },
-      { size: "Galón 4 L", type: "menudeo", presentationSize: "galon", volume: "4 L", price: 6, image: "/productos/Gel Antibacterial Galón.png" },
-      { size: "Caneca 20 L", type: "mayoreo", presentationSize: "caneca", volume: "20 L", price: 20, image: "/productos/Gel Antibacterial  Caneca.png" },
+      { size: "Botella 1 L", type: "menudeo", presentationSize: "litro", volume: "1 L", price: 1, image: "/productos/Gel Antibacterial  Litro.webp" },
+      { size: "Galón 4 L", type: "menudeo", presentationSize: "galon", volume: "4 L", price: 6, image: "/productos/Gel Antibacterial Galón.webp" },
+      { size: "Caneca 20 L", type: "mayoreo", presentationSize: "caneca", volume: "20 L", price: 20, image: "/productos/Gel Antibacterial  Caneca.webp" },
     ],
     featured: true,
-    color: "#16A34A",
+    color: "#FFFFFF",
   },
   {
     id: "alcohol-antiseptico",
@@ -69,8 +69,8 @@ export const products: Product[] = [
     ],
     presentations: [
       { size: "Botella 1 L", type: "menudeo", presentationSize: "litro", volume: "1 L", price: 1, image: "/productos/Alcohol Antiséptico Litro.png" },
-      { size: "Galón 4 L", type: "menudeo", presentationSize: "galon", volume: "4 L", price: 6, image: "/productos/Alcohol Antiséptico Galón.png" },
-      { size: "Caneca 20 L", type: "mayoreo", presentationSize: "caneca", volume: "20 L", price: 20, image: "/productos/Alcohol Antiséptico Caneca.png" },
+      { size: "Galón 4 L", type: "menudeo", presentationSize: "galon", volume: "4 L", price: 6, image: "/productos/Alcohol Antiséptico Galón.webp" },
+      { size: "Caneca 20 L", type: "mayoreo", presentationSize: "caneca", volume: "20 L", price: 20, image: "/productos/Alcohol Antiséptico Caneca.webp" },
     ],
     featured: true,
     color: "#0EA5E9",
@@ -90,12 +90,12 @@ export const products: Product[] = [
       { k: "Diluible", v: "Sí" },
     ],
     presentations: [
-      { size: "Botella 1 L", type: "menudeo", presentationSize: "litro", volume: "1 L", price: 1, image: "/productos/Desinfectante Litro.png" },
-      { size: "Galón 4 L", type: "menudeo", presentationSize: "galon", volume: "4 L", price: 6, image: "/productos/Desinfectante Galón.png" },
+      { size: "Botella 1 L", type: "menudeo", presentationSize: "litro", volume: "1 L", price: 1, image: "/productos/Desinfectante Litro.webp" },
+      { size: "Galón 4 L", type: "menudeo", presentationSize: "galon", volume: "4 L", price: 6, image: "/productos/Desinfectante Galón.webp" },
       { size: "Caneca 20 L", type: "mayoreo", presentationSize: "caneca", volume: "20 L", price: 20, image: "/productos/Desinfectante Caneca.png" },
     ],
     featured: true,
-    color: "#7C3AED",
+    color: "#16A34A",
   },
   {
     id: "jabon-liquido",
@@ -112,9 +112,9 @@ export const products: Product[] = [
       { k: "Glicerina", v: "Sí" },
     ],
     presentations: [
-      { size: "Botella 1 L", type: "menudeo", presentationSize: "litro", volume: "1 L", price: 1, image: "/productos/Jabón de Manos Litro.png" },
+      { size: "Botella 1 L", type: "menudeo", presentationSize: "litro", volume: "1 L", price: 1, image: "/productos/Jabón de Manos Litro.webp" },
       { size: "Galón 4 L", type: "menudeo", presentationSize: "galon", volume: "4 L", price: 6, image: "/productos/Jabón de Manos Galón.png" },
-      { size: "Caneca 20 L", type: "mayoreo", presentationSize: "caneca", volume: "20 L", price: 20, image: "/productos/Jabón de Manos Caneca.png" },
+      { size: "Caneca 20 L", type: "mayoreo", presentationSize: "caneca", volume: "20 L", price: 20, image: "/productos/Jabón de Manos Caneca.webp" },
     ],
     featured: true,
     color: "#F59E0B",
@@ -134,12 +134,12 @@ export const products: Product[] = [
       { k: "Acción", v: "Desinfectante" },
     ],
     presentations: [
-      { size: "Botella 1 L", type: "menudeo", presentationSize: "litro", volume: "1 L", price: 1, image: "/productos/Cloro Litro.png" },
-      { size: "Galón 4 L", type: "menudeo", presentationSize: "galon", volume: "4 L", price: 6, image: "/productos/Cloro Galón.png" },
+      { size: "Botella 1 L", type: "menudeo", presentationSize: "litro", volume: "1 L", price: 1, image: "/productos/Cloro Litro.webp" },
+      { size: "Galón 4 L", type: "menudeo", presentationSize: "galon", volume: "4 L", price: 6, image: "/productos/Cloro Galón.webp" },
       { size: "Caneca 20 L", type: "mayoreo", presentationSize: "caneca", volume: "20 L", price: 20, image: "/productos/Cloro Caneca.png" },
     ],
     featured: true,
-    color: "#06B6D4",
+    color: "#E11D2E",
   },
   {
     id: "detergente-liquido",
@@ -156,14 +156,21 @@ export const products: Product[] = [
       { k: "Rendimiento", v: "2× estándar" },
     ],
     presentations: [
-      { size: "Botella 1 L", type: "menudeo", presentationSize: "litro", volume: "1 L", price: 1, image: "/productos/Detergente Litro.png" },
-      { size: "Galón 4 L", type: "menudeo", presentationSize: "galon", volume: "4 L", price: 6, image: "/productos/Detergente Galón.png" },
+      { size: "Botella 1 L", type: "menudeo", presentationSize: "litro", volume: "1 L", price: 1, image: "/productos/Detergente Litro.webp" },
+      { size: "Galón 4 L", type: "menudeo", presentationSize: "galon", volume: "4 L", price: 6, image: "/productos/Detergente Galón.webp" },
       { size: "Caneca 20 L", type: "mayoreo", presentationSize: "caneca", volume: "20 L", price: 20, image: "/productos/Detergente Caneca.png" },
     ],
     featured: true,
     color: "#3B82F6",
   },
 ];
+
+/** true si el color es tan claro que no se lee sobre blanco (ej. el Gel). */
+export function isLightColor(hex: string): boolean {
+  const n = parseInt(hex.slice(1), 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 200;
+}
 
 export const categories: { id: ProductCategory | "all"; label: string }[] = [
   { id: "all", label: "Todos" },

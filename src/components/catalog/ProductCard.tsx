@@ -1,20 +1,31 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { isLightColor } from "@/data/products";
 import type { Product } from "@/data/products";
-import { ArrowIcon, WhatsAppIcon } from "@/components/shared/Icons";
+import { WhatsAppIcon } from "@/components/shared/Icons";
 import { WhatsAppModal } from "@/components/shared/WhatsAppModal";
 import { useReducedMotionPreference } from "@/lib/a11y";
 import Image from "next/image";
+import { preloadStageImage } from "./ProductStage";
 
-export function ProductCard({ product, onOpen }: { product: Product; onOpen: () => void }) {
+export function ProductCard({ product, onOpen, paused }: {
+  product: Product;
+  onOpen: (presentation: number, image: HTMLElement | null) => void;
+  /** Detiene la rotacion automatica (mientras el escenario esta abierto). */
+  paused: boolean;
+}) {
   const [hoverCard, setHoverCard] = useState(false);
-  const [hoverImage, setHoverImage] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [quoteOpen, setQuoteOpen] = useState(false);
   const [autoplayPaused, setAutoplayPaused] = useState(false);
   const reducedMotion = useReducedMotionPreference();
+  // Un color muy claro (Gel, blanco) no se lee sobre la tarjeta: los textos
+  // pasan a gris y los puntos blancos llevan un borde.
+  const light = isLightColor(product.color);
+  const textColor = light ? "var(--muted)" : product.color;
+  const dotRing = light ? "inset 0 0 0 1px rgba(11,23,54,0.3)" : "none";
 
   // Todas las presentaciones disponibles (las 3)
   const allPresentations = product.presentations;
@@ -39,7 +50,7 @@ export function ProductCard({ product, onOpen }: { product: Product; onOpen: () 
   // o este interactuando con la tarjeta (hover o foco por teclado): sin eso
   // no hay forma de detener el cambio automatico (WCAG 2.2.2).
   useEffect(() => {
-    if (reducedMotion || autoplayPaused) return;
+    if (reducedMotion || autoplayPaused || paused) return;
     const interval = setInterval(() => {
       if (!isTransitioning) {
         changePresentation((currentIndex + 1) % allPresentations.length);
@@ -47,13 +58,15 @@ export function ProductCard({ product, onOpen }: { product: Product; onOpen: () 
     }, 4000);
 
     return () => clearInterval(interval);
-  }, [currentIndex, isTransitioning, allPresentations.length, changePresentation, reducedMotion, autoplayPaused]);
+  }, [currentIndex, isTransitioning, allPresentations.length, changePresentation, reducedMotion, autoplayPaused, paused]);
 
   return (
     <article
       onMouseEnter={() => { setHoverCard(true); setAutoplayPaused(true); }}
       onMouseLeave={() => { setHoverCard(false); setAutoplayPaused(false); }}
-      onFocus={() => setAutoplayPaused(true)}
+      // Pausa por foco solo con teclado: al cerrar el escenario el foco vuelve
+      // aqui por programa y no debe dejar el slider detenido.
+      onFocus={(e) => { if (e.target.matches(":focus-visible")) setAutoplayPaused(true); }}
       onBlur={() => setAutoplayPaused(false)}
       style={{
         background: "white", borderRadius: 24, overflow: "hidden",
@@ -82,11 +95,11 @@ export function ProductCard({ product, onOpen }: { product: Product; onOpen: () 
           position: "absolute", top: 16, right: 16,
           padding: "6px 12px", borderRadius: 999,
           fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em",
-          background: "white", color: product.color, border: "1px solid var(--border)",
+          background: "white", color: textColor, border: "1px solid var(--border)",
           display: "flex", alignItems: "center", gap: 6,
           zIndex: 3,
         }}>
-          <span style={{ width: 6, height: 6, borderRadius: 999, background: product.color }} />
+          <span style={{ width: 6, height: 6, borderRadius: 999, background: product.color, boxShadow: dotRing }} />
           {product.categoryLabel}
         </div>
 
@@ -108,11 +121,10 @@ export function ProductCard({ product, onOpen }: { product: Product; onOpen: () 
             border: "none",
             width: "100%",
           }}
-          onMouseEnter={() => setHoverImage(true)}
-          onMouseLeave={() => setHoverImage(false)}
-          onFocus={() => setHoverImage(true)}
-          onBlur={() => setHoverImage(false)}
-          onClick={onOpen}
+          onPointerEnter={() => preloadStageImage(currentPresentation.image)}
+          onTouchStart={() => preloadStageImage(currentPresentation.image)}
+          onFocus={() => preloadStageImage(currentPresentation.image)}
+          onClick={(e) => onOpen(currentIndex, e.currentTarget.querySelector("img"))}
           aria-label={`Ver detalle de ${product.name}`}
         >
           <Image
@@ -129,24 +141,6 @@ export function ProductCard({ product, onOpen }: { product: Product; onOpen: () 
             }}
             priority
           />
-
-          {/* Overlay Ver detalle - Solo sobre la imagen */}
-          <div style={{
-            position: "absolute",
-            inset: 0,
-            background: "linear-gradient(0deg, rgba(30,91,186,0.92) 0%, rgba(30,91,186,0.6) 100%)",
-            opacity: hoverImage ? 1 : 0,
-            transition: "opacity .25s",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "white",
-            borderRadius: 16,
-          }}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 8, fontWeight: 700, fontSize: 15 }}>
-              Ver detalle <ArrowIcon width={16} height={16} />
-            </span>
-          </div>
         </button>
 
         {/* Indicadores de presentación */}
@@ -179,6 +173,7 @@ export function ProductCard({ product, onOpen }: { product: Product; onOpen: () 
                 height: 8,
                 borderRadius: 999,
                 background: currentIndex === index ? product.color : "rgba(0,0,0,0.2)",
+                boxShadow: currentIndex === index ? dotRing : "none",
                 transition: "all 0.25s",
                 display: "block",
               }} />
@@ -205,7 +200,7 @@ export function ProductCard({ product, onOpen }: { product: Product; onOpen: () 
           <div style={{ fontSize: 10, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
             Presentación
           </div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: product.color }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: textColor }}>
             {currentPresentation.volume}
           </div>
         </div>

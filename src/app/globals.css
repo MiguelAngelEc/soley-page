@@ -183,6 +183,25 @@ p { margin: 0; color: var(--muted); }
   to   { transform: translateX(-50%); }
 }
 
+/* Flotacion de producto (caneca del hero y escenario del catalogo). La sombra
+   usa la misma duracion para que se encoja cuando el producto sube. */
+@keyframes product-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+@keyframes product-float-shadow {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(0.82); opacity: 0.7; }
+}
+
+/* Imagen de producto que vuela entre la tarjeta del catalogo y el escenario. */
+::view-transition-group(stage-product) {
+  animation-duration: 0.5s;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+::view-transition-old(root),
+::view-transition-new(root) { animation-duration: 0.3s; }
+
 /* Modal */
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(11,23,54,0.55);

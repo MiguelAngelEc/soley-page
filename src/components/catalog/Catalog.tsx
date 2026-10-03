@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
-import { flushSync } from "react-dom";
+import { flushSync, preload } from "react-dom";
 import { products, categories } from "@/data/products";
 import type { Product, ProductCategory, PresentationType } from "@/data/products";
 import { ProductCard } from "./ProductCard";
@@ -35,15 +35,30 @@ export function Catalog() {
   // tarjeta solo en el estado viejo de la transicion; el escenario lo lleva
   // en la presentacion visible. Sin soporte o con menos movimiento, se abre
   // sin transicion y el producto sube desde el pedestal.
+  // Recursos fijos del escenario: se piden en cuanto el visitante se acerca a
+  // una tarjeta (no al cargar la pagina) para que esten listos al abrir.
+  const preloadStageAssets = () => {
+    preload("/efectos/pedestal.webp", { as: "image" });
+    preload("/efectos/logo-blanco.webp", { as: "image" });
+  };
+
   const openStage = (product: Product, presentation: number, cardImage: HTMLElement | null) => {
     if (!cardImage || !document.startViewTransition || prefersReducedMotion()) {
       setStage({ product, presentation, cardImage: null });
       return;
     }
     cardImage.style.viewTransitionName = "stage-product";
-    document.startViewTransition(() => {
+    document.startViewTransition(async () => {
       flushSync(() => setStage({ product, presentation, cardImage }));
       cardImage.style.viewTransitionName = "";
+      // La captura del estado nuevo se toma al terminar esta funcion: se
+      // espera (maximo 400 ms) a que la imagen grande y el pedestal esten
+      // decodificados para que la imagen no vuele hacia un hueco.
+      const images = [...document.querySelectorAll<HTMLImageElement>(".stage-layer[data-state='in'] img, .stage-pedestal")];
+      await Promise.race([
+        Promise.all(images.map((img) => img.decode().catch(() => {}))),
+        new Promise((resolve) => setTimeout(resolve, 400)),
+      ]);
     });
   };
 
@@ -228,6 +243,9 @@ export function Catalog() {
         >
           <div
             className="catalog-grid reveal-stagger"
+            onPointerEnter={preloadStageAssets}
+            onTouchStart={preloadStageAssets}
+            onFocus={preloadStageAssets}
             style={{
               opacity: isTransitioning ? 0 : 1,
               transform: isTransitioning ? "translateY(10px)" : "translateY(0)",

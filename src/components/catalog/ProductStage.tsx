@@ -5,7 +5,19 @@ import type { Product } from "@/data/products";
 import { ArrowIcon, CloseIcon, WhatsAppIcon } from "@/components/shared/Icons";
 import { WhatsAppModal } from "@/components/shared/WhatsAppModal";
 import { useDialogA11y } from "@/lib/a11y";
-import Image from "next/image";
+import { preload } from "react-dom";
+import Image, { getImageProps } from "next/image";
+
+const STAGE_IMAGE_SIZES = "(max-width: 980px) 80vw, 50vw";
+
+/**
+ * Pide de antemano la imagen grande de una presentacion, con el mismo srcset
+ * que usara el escenario, para que ya este lista al abrirlo.
+ */
+export function preloadStageImage(src: string) {
+  const { props } = getImageProps({ src, alt: "", fill: true, sizes: STAGE_IMAGE_SIZES });
+  preload(props.src, { as: "image", imageSrcSet: props.srcSet, imageSizes: props.sizes });
+}
 
 interface ProductStageProps {
   product: Product;
@@ -158,7 +170,7 @@ export function ProductStage({ product, initialPresentation, morph, onClose }: P
                     src={p.image}
                     alt={state === "in" ? `${product.name} - ${p.volume}` : ""}
                     fill
-                    sizes="(max-width: 980px) 80vw, 50vw"
+                    sizes={STAGE_IMAGE_SIZES}
                     loading="eager"
                     style={{ objectFit: "contain" }}
                   />
@@ -254,10 +266,20 @@ export function ProductStage({ product, initialPresentation, morph, onClose }: P
           grid-template-columns: minmax(0, 1.2fr) minmax(360px, 1fr);
           grid-template-rows: auto minmax(0, 1fr) auto;
           grid-template-areas: "top top" "arena info" "roster info";
-          background: rgba(6, 20, 48, 0.72);
-          backdrop-filter: blur(10px) saturate(1.1); -webkit-backdrop-filter: blur(10px) saturate(1.1);
           color: white;
           overflow: hidden;
+        }
+        /* El oscurecido va en una capa aparte: un backdrop-filter en .stage
+           la volveria el contenedor de los position: fixed internos, y el
+           formulario de cotizacion se desplazaria con el escenario. */
+        .stage::before {
+          content: ""; position: fixed; inset: 0; z-index: -1;
+          background: rgba(6, 20, 48, 0.72);
+          backdrop-filter: blur(10px) saturate(1.1); -webkit-backdrop-filter: blur(10px) saturate(1.1);
+        }
+        /* Sin desenfoque disponible: fondo mas oscuro para que el texto se lea. */
+        @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+          .stage::before { background: rgba(6, 20, 48, 0.92); }
         }
         .stage-top {
           grid-area: top;
@@ -330,11 +352,10 @@ export function ProductStage({ product, initialPresentation, morph, onClose }: P
         .stage-layer[data-state="out"] {
           animation: stage-sink 0.28s cubic-bezier(0.4, 0, 1, 1) both;
         }
-        /* Al cambiar, la nueva espera a que la anterior se hunda. */
-        .stage-layer[data-state="out"] ~ .stage-layer[data-state="in"],
-        .stage-layer[data-state="in"]:has(~ .stage-layer[data-state="out"]) {
-          animation-delay: 0.16s;
-        }
+        /* Al cambiar, la nueva espera a que la anterior se hunda. Reglas
+           separadas: en navegadores sin :has() solo se pierde la segunda. */
+        .stage-layer[data-state="out"] ~ .stage-layer[data-state="in"] { animation-delay: 0.16s; }
+        .stage-layer[data-state="in"]:has(~ .stage-layer[data-state="out"]) { animation-delay: 0.16s; }
         @keyframes stage-rise {
           from { opacity: 0; transform: translateY(40px) scale(0.6, 0.3); filter: brightness(2.2); }
           55% { filter: brightness(1.3); }
@@ -375,7 +396,11 @@ export function ProductStage({ product, initialPresentation, morph, onClose }: P
           border: 1px solid rgba(255,255,255,0.2);
         }
         .stage-arrow { transition: background .2s, transform .2s; }
-        .stage-arrow:hover { background: rgba(255,255,255,0.2); transform: scale(1.06); }
+        /* Solo con mouse: en pantallas tactiles el hover queda pegado tras tocar. */
+        @media (hover: hover) {
+          .stage-arrow:hover { background: rgba(255,255,255,0.2); transform: scale(1.06); }
+          .stage-roster-item:hover .stage-roster-thumb { background: rgba(255,255,255,0.12); transform: translateY(-2px); }
+        }
         .stage-arrow-prev { left: 24px; }
         .stage-arrow-prev svg { transform: rotate(180deg); }
         .stage-arrow-next { right: 24px; }
@@ -397,7 +422,6 @@ export function ProductStage({ product, initialPresentation, morph, onClose }: P
           background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.14);
           transition: transform .25s cubic-bezier(0.34, 1.56, 0.64, 1), border-color .2s, background .2s, box-shadow .2s;
         }
-        .stage-roster-item:hover .stage-roster-thumb { background: rgba(255,255,255,0.12); transform: translateY(-2px); }
         .stage-roster-item[aria-pressed="true"] { color: white; }
         .stage-roster-item[aria-pressed="true"] .stage-roster-thumb {
           border-color: var(--accent); background: rgba(255,255,255,0.16);
@@ -448,8 +472,11 @@ export function ProductStage({ product, initialPresentation, morph, onClose }: P
             display: flex; flex-direction: column;
             overflow-y: auto; overscroll-behavior: contain;
           }
-          .stage-top { position: sticky; top: 0; z-index: 3; padding: 12px 16px; }
-          .stage-arena { flex: none; height: 46dvh; min-height: 260px; padding: 0 8px; }
+          .stage-top {
+            position: sticky; top: 0; z-index: 3; padding: 12px 16px;
+            background: linear-gradient(rgba(6, 20, 48, 0.92) 55%, transparent);
+          }
+          .stage-arena { flex: none; height: 46vh; height: 46dvh; min-height: 260px; padding: 0 8px; }
           .stage-figure { height: 100%; }
           .stage-arrow { width: 44px; height: 44px; margin-top: -22px; }
           .stage-arrow-prev { left: 8px; }
@@ -487,7 +514,7 @@ export function ProductStage({ product, initialPresentation, morph, onClose }: P
             grid-template-rows: auto minmax(0, 1fr) auto;
             grid-template-areas: "top top" "arena info" "roster info";
           }
-          .stage-top { position: static; padding: 8px 16px; }
+          .stage-top { position: static; padding: 8px 16px; background: none; }
           .stage-arena { height: auto; min-height: 0; }
           .stage-roster { padding: 4px 8px 8px; }
           .stage-roster-thumb { width: 40px; height: 40px; padding: 3px; border-radius: 10px; }

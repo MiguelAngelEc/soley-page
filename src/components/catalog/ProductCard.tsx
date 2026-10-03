@@ -6,6 +6,7 @@ import { WhatsAppIcon } from "@/components/shared/Icons";
 import { WhatsAppModal } from "@/components/shared/WhatsAppModal";
 import { useReducedMotionPreference } from "@/lib/a11y";
 import Image from "next/image";
+import { preloadStageImage } from "./ProductStage";
 
 export function ProductCard({ product, onOpen }: { product: Product; onOpen: (presentation: number, image: HTMLElement | null) => void }) {
   const [hoverCard, setHoverCard] = useState(false);
@@ -107,6 +108,9 @@ export function ProductCard({ product, onOpen }: { product: Product; onOpen: (pr
             border: "none",
             width: "100%",
           }}
+          onPointerEnter={() => preloadStageImage(currentPresentation.image)}
+          onTouchStart={() => preloadStageImage(currentPresentation.image)}
+          onFocus={() => preloadStageImage(currentPresentation.image)}
           onClick={(e) => onOpen(currentIndex, e.currentTarget.querySelector("img"))}
           aria-label={`Ver detalle de ${product.name}`}
         >

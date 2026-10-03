@@ -172,6 +172,12 @@ export function ProductStage({ product, initialPresentation, morph, onClose }: P
         </button>
       </div>
 
+      {/* Anuncia cada cambio de presentacion a los lectores de pantalla (el
+          contador visible queda oculto para no leerlo dos veces). */}
+      <div className="sr-only" aria-live="polite">
+        {view.swap > 0 && `${current.size}, ${presentation + 1} de ${total}`}
+      </div>
+
       <div className="stage-roster" role="group" aria-label="Presentación">
         {presentations.map((p, i) => (
           <button

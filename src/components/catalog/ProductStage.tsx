@@ -11,6 +11,8 @@ interface ProductStageProps {
   product: Product;
   /** Presentacion que la tarjeta mostraba al abrir (1 L, 4 L o 20 L). */
   initialPresentation: number;
+  /** Se abre con la imagen de la tarjeta volando hasta aqui: sin subida inicial. */
+  morph: boolean;
   onClose: () => void;
 }
 
@@ -33,7 +35,7 @@ function move(view: StageView, index: number): StageView {
  * producto flota a un lado y sus presentaciones (1 L, 4 L, 20 L) se recorren
  * con flechas o teclado, como variantes del mismo personaje.
  */
-export function ProductStage({ product, initialPresentation, onClose }: ProductStageProps) {
+export function ProductStage({ product, initialPresentation, morph, onClose }: ProductStageProps) {
   const [view, setView] = useState<StageView>({ index: initialPresentation, prev: -1, swap: 0 });
   const [quoteOpen, setQuoteOpen] = useState(false);
   const titleId = useId();
@@ -148,7 +150,9 @@ export function ProductStage({ product, initialPresentation, onClose }: ProductS
                   key={state === "idle" ? p.size : `${p.size}-${view.swap}`}
                   className="stage-layer"
                   data-state={state}
+                  data-morph={morph && view.swap === 0 ? "" : undefined}
                   aria-hidden={state !== "in"}
+                  style={state === "in" ? { viewTransitionName: "stage-product" } : undefined}
                 >
                   <Image
                     src={p.image}
@@ -315,6 +319,8 @@ export function ProductStage({ product, initialPresentation, onClose }: ProductS
         .stage-layer[data-state="in"] {
           animation: stage-rise 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
         }
+        /* Al abrir con la imagen volando desde la tarjeta, sin subida. */
+        .stage-layer[data-morph] { animation: none; }
         .stage-layer[data-state="out"] {
           animation: stage-sink 0.28s cubic-bezier(0.4, 0, 1, 1) both;
         }

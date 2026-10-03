@@ -1,17 +1,24 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
+import { flushSync } from "react-dom";
 import { products, categories } from "@/data/products";
 import type { Product, ProductCategory, PresentationType } from "@/data/products";
 import { ProductCard } from "./ProductCard";
 import { ProductStage } from "./ProductStage";
 import { useReveal } from "@/lib/hooks";
+import { prefersReducedMotion } from "@/lib/a11y";
 import { ArrowIcon, WhatsAppIcon, DocumentIcon, DownloadIcon } from "@/components/shared/Icons";
 
 export function Catalog() {
   const [cat, setCat] = useState<ProductCategory | "all">("all");
   const [mode, setMode] = useState<PresentationType>("menudeo");
-  const [stage, setStage] = useState<{ product: Product; presentation: number } | null>(null);
+  const [stage, setStage] = useState<{
+    product: Product;
+    presentation: number;
+    /** Imagen de la tarjeta para la transicion de ida y vuelta (null = sin transicion). */
+    cardImage: HTMLElement | null;
+  } | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [gridHeight, setGridHeight] = useState<number | "auto">("auto");
   const gridRef = useRef<HTMLDivElement | null>(null);
@@ -22,6 +29,36 @@ export function Catalog() {
     if (cat === "all") return products;
     return products.filter((p) => p.category === cat);
   }, [cat]);
+
+  // La imagen de la tarjeta "vuela" hasta el escenario y vuelve al cerrar
+  // (View Transitions API). El nombre compartido vive en la imagen de la
+  // tarjeta solo en el estado viejo de la transicion; el escenario lo lleva
+  // en la presentacion visible. Sin soporte o con menos movimiento, se abre
+  // sin transicion y el producto sube desde el pedestal.
+  const openStage = (product: Product, presentation: number, cardImage: HTMLElement | null) => {
+    if (!cardImage || !document.startViewTransition || prefersReducedMotion()) {
+      setStage({ product, presentation, cardImage: null });
+      return;
+    }
+    cardImage.style.viewTransitionName = "stage-product";
+    document.startViewTransition(() => {
+      flushSync(() => setStage({ product, presentation, cardImage }));
+      cardImage.style.viewTransitionName = "";
+    });
+  };
+
+  const closeStage = () => {
+    const cardImage = stage?.cardImage;
+    if (!cardImage?.isConnected || !document.startViewTransition || prefersReducedMotion()) {
+      setStage(null);
+      return;
+    }
+    const transition = document.startViewTransition(() => {
+      flushSync(() => setStage(null));
+      cardImage.style.viewTransitionName = "stage-product";
+    });
+    transition.finished.finally(() => { cardImage.style.viewTransitionName = ""; });
+  };
 
   const handleCategoryChange = (newCat: ProductCategory | "all") => {
     if (newCat === cat) return;
@@ -198,7 +235,7 @@ export function Catalog() {
             }}
           >
             {filtered.map((p) => (
-              <ProductCard key={p.id} product={p} onOpen={(presentation) => setStage({ product: p, presentation })} />
+              <ProductCard key={p.id} product={p} onOpen={(presentation, image) => openStage(p, presentation, image)} />
             ))}
           </div>
         </div>
@@ -232,7 +269,8 @@ export function Catalog() {
         <ProductStage
           product={stage.product}
           initialPresentation={stage.presentation}
-          onClose={() => setStage(null)}
+          morph={stage.cardImage !== null}
+          onClose={closeStage}
         />
       )}
 

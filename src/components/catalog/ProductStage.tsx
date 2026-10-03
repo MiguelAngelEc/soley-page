@@ -14,32 +14,49 @@ interface ProductStageProps {
   onClose: () => void;
 }
 
+interface StageView {
+  /** Presentacion visible. */
+  index: number;
+  /** Presentacion que esta saliendo (-1 al abrir). */
+  prev: number;
+  /** Lado hacia el que se avanza: 1 derecha, -1 izquierda, 0 al abrir. */
+  dir: number;
+  /** Cambia en cada salto para reiniciar las animaciones de entrada y salida. */
+  swap: number;
+}
+
+function move(view: StageView, index: number, dir: number): StageView {
+  if (index === view.index) return view;
+  return { index, prev: view.index, dir, swap: view.swap + 1 };
+}
+
 /**
  * Escenario estilo "seleccion de personaje" sobre la pagina oscurecida: el
  * producto flota a un lado y sus presentaciones (1 L, 4 L, 20 L) se recorren
  * con flechas o teclado, como variantes del mismo personaje.
  */
 export function ProductStage({ product, initialPresentation, onClose }: ProductStageProps) {
-  const [presentation, setPresentation] = useState(initialPresentation);
+  const [view, setView] = useState<StageView>({ index: initialPresentation, prev: -1, dir: 0, swap: 0 });
   const [quoteOpen, setQuoteOpen] = useState(false);
   const titleId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
 
   const presentations = product.presentations;
   const total = presentations.length;
+  const presentation = view.index;
   const current = presentations[presentation];
 
   useDialogA11y({ isOpen: true, onClose, containerRef });
 
-  const go = (step: number) => setPresentation((i) => (i + step + total) % total);
+  const go = (step: number) => setView((v) => move(v, (v.index + step + total) % total, step));
 
   // Flechas del teclado. Se ignoran mientras el formulario de cotizacion esta
   // abierto para no cambiar de presentacion al moverse dentro de un campo.
   useEffect(() => {
     if (quoteOpen) return;
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "ArrowRight") setPresentation((i) => (i + 1) % total);
-      else if (e.key === "ArrowLeft") setPresentation((i) => (i - 1 + total) % total);
+      if (e.key === "ArrowRight") setView((v) => move(v, (v.index + 1) % total, 1));
+      else if (e.key === "ArrowLeft") setView((v) => move(v, (v.index - 1 + total) % total, -1));
     }
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
@@ -93,14 +110,31 @@ export function ProductStage({ product, initialPresentation, onClose }: ProductS
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img className="stage-pedestal" src="/efectos/pedestal.webp" alt="" aria-hidden="true" />
           <div className="stage-shadow" aria-hidden="true" />
-          <div className="stage-product">
-            <Image
-              src={current.image}
-              alt={`${product.name} - ${current.volume}`}
-              fill
-              sizes="(max-width: 980px) 80vw, 50vw"
-              style={{ objectFit: "contain" }}
-            />
+          {/* Las 3 presentaciones quedan montadas (y precargadas): la actual
+              entra, la anterior sale hacia el lado contrario y el resto espera
+              oculta, asi el cambio no parpadea esperando la imagen. */}
+          <div className="stage-product" style={{ "--dir": view.dir } as React.CSSProperties}>
+            {presentations.map((p, i) => {
+              const state = i === view.index ? "in" : i === view.prev ? "out" : "idle";
+              return (
+                <div
+                  key={state === "idle" ? p.size : `${p.size}-${view.swap}`}
+                  className="stage-layer"
+                  data-state={state}
+                  data-enter={view.dir === 0 ? "open" : undefined}
+                  aria-hidden={state !== "in"}
+                >
+                  <Image
+                    src={p.image}
+                    alt={state === "in" ? `${product.name} - ${p.volume}` : ""}
+                    fill
+                    sizes="(max-width: 980px) 80vw, 50vw"
+                    loading="eager"
+                    style={{ objectFit: "contain" }}
+                  />
+                </div>
+              );
+            })}
           </div>
         </div>
         <button type="button" className="stage-arrow stage-arrow-next" onClick={() => go(1)} aria-label="Presentación siguiente">
@@ -114,7 +148,7 @@ export function ProductStage({ product, initialPresentation, onClose }: ProductS
             key={p.size}
             type="button"
             className="stage-roster-item"
-            onClick={() => setPresentation(i)}
+            onClick={() => setView((v) => move(v, i, Math.sign(i - v.index)))}
             aria-label={p.size}
             aria-pressed={i === presentation}
           >
@@ -130,7 +164,7 @@ export function ProductStage({ product, initialPresentation, onClose }: ProductS
         <div>
           <div className="stage-tagline">{product.tagline}</div>
           <h2 id={titleId} className="stage-name">{product.name}</h2>
-          <div className="stage-current">
+          <div className="stage-current" key={presentation}>
             {current.size}
             <span>{current.type === "mayoreo" ? "Al por mayor" : "Al por menor"}</span>
           </div>
@@ -246,6 +280,35 @@ export function ProductStage({ product, initialPresentation, onClose }: ProductS
           filter: drop-shadow(0 24px 30px rgba(0,0,0,0.35));
           animation: product-float 4.5s ease-in-out infinite;
         }
+        .stage-layer { position: absolute; inset: 0; }
+        .stage-layer[data-state="idle"] { visibility: hidden; }
+        .stage-layer[data-state="in"] {
+          animation: stage-in 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        .stage-layer[data-state="in"][data-enter="open"] {
+          animation: stage-open 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        .stage-layer[data-state="out"] {
+          animation: stage-out 0.3s cubic-bezier(0.4, 0, 1, 1) both;
+        }
+        /* Entra desde el lado hacia el que se avanza y sale por el opuesto. */
+        @keyframes stage-in {
+          from { opacity: 0; transform: translateX(calc(var(--dir) * 45%)) scale(0.85) rotate(calc(var(--dir) * 6deg)); }
+          to { opacity: 1; transform: none; }
+        }
+        @keyframes stage-out {
+          from { opacity: 1; transform: none; }
+          to { opacity: 0; transform: translateX(calc(var(--dir) * -45%)) scale(0.85) rotate(calc(var(--dir) * -6deg)); }
+        }
+        @keyframes stage-open {
+          from { opacity: 0; transform: translateY(40px) scale(0.9); }
+          to { opacity: 1; transform: none; }
+        }
+        .stage-current { animation: stage-fade 0.35s ease-out both; }
+        @keyframes stage-fade {
+          from { opacity: 0; transform: translateY(6px); }
+          to { opacity: 1; transform: none; }
+        }
         .stage-shadow {
           position: absolute; top: 74%; left: 30%; width: 40%; height: 6%; border-radius: 50%;
           background: radial-gradient(ellipse, rgba(0,0,0,0.55) 0%, transparent 70%);
@@ -358,6 +421,10 @@ export function ProductStage({ product, initialPresentation, onClose }: ProductS
         }
         @media (prefers-reduced-motion: reduce) {
           .stage-product, .stage-shadow { animation: none; }
+          .stage-layer[data-state] { animation: stage-crossfade 0.15s linear both; }
+          .stage-layer[data-state="out"] { animation-direction: reverse; }
+          .stage-current { animation: none; }
+          @keyframes stage-crossfade { from { opacity: 0; } to { opacity: 1; } }
         }
         /* Movil horizontal: poca altura, producto y datos lado a lado. */
         @media (max-height: 500px) and (orientation: landscape) {

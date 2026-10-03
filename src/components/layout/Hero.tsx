@@ -163,11 +163,22 @@ export function Hero() {
               }}
             >
               <span className="eyebrow"><span className="dot" />{slide.eyebrow}</span>
-              <h1>
-                <span style={{ color: "var(--ink)" }}>{slide.title[0]}</span>{" "}
-                <span style={{ color: "var(--soley-blue)" }}>{slide.title[1]}</span>
-              </h1>
-              <p className="lead" style={{ maxWidth: 540, minHeight: 60 }}>{slide.desc}</p>
+              <div className="hero-copy">
+                {slides.map((s, i) => {
+                  const active = i === idx;
+                  // Solo la diapositiva visible es el h1; las otras solo reservan su alto.
+                  const Title = active ? "h1" : "div";
+                  return (
+                    <div key={i} className="hero-copy-slide" data-active={active} aria-hidden={active ? undefined : true}>
+                      <Title className="hero-title">
+                        <span style={{ color: "var(--ink)" }}>{s.title[0]}</span>{" "}
+                        <span style={{ color: "var(--soley-blue)" }}>{s.title[1]}</span>
+                      </Title>
+                      <p className="lead" style={{ maxWidth: 540, minHeight: 60 }}>{s.desc}</p>
+                    </div>
+                  );
+                })}
+              </div>
 
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 4 }}>
                 <a href="#productos" className="btn btn-lg btn-red">Ver catálogo<ArrowIcon width={18} height={18} /></a>
@@ -282,6 +293,20 @@ export function Hero() {
           }
         }
         .hero-caneca-area { position: relative; height: 580px; --rise: 660px; }
+        .hero-copy-slide { display: flex; flex-direction: column; gap: 28px; }
+        .hero-copy-slide[data-active="false"] { display: none; }
+        .hero-title {
+          font-size: clamp(40px, 6vw, 76px); line-height: 1.02; font-weight: 800;
+          letter-spacing: -0.02em; margin: 0;
+        }
+        /* Movil: cada titulo ocupa un alto distinto y empujaba los botones al
+           rotar (CLS). Las tres diapositivas comparten celda, asi el bloque
+           siempre mide lo de la mas alta. */
+        @media (max-width: 980px) {
+          .hero-copy { display: grid; }
+          .hero-copy-slide { grid-area: 1 / 1; }
+          .hero-copy-slide[data-active="false"] { display: flex; visibility: hidden; }
+        }
         .hero-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 80px; align-items: center; }
         @media (max-width: 980px) {
           .hero-grid { grid-template-columns: 1fr; gap: 48px; }

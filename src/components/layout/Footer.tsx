@@ -49,9 +49,9 @@ export function Footer() {
             </p>
 
             <div style={{ display: "flex", gap: 8, marginTop: 24 }}>
-              <SocialBtn href="https://facebook.com/soleyjaboneria" Icon={FbIcon} />
-              <SocialBtn href="https://instagram.com/soleyjaboneria" Icon={IgIcon} />
-              <SocialBtn href="https://wa.me/593961264102" Icon={WhatsAppIcon} />
+              <SocialBtn href="https://facebook.com/soleyjaboneria" Icon={FbIcon} label="Facebook de Soley" />
+              <SocialBtn href="https://instagram.com/soleyjaboneria" Icon={IgIcon} label="Instagram de Soley" />
+              <SocialBtn href="https://wa.me/593961264102" Icon={WhatsAppIcon} label="WhatsApp de Soley" />
             </div>
           </div>
 
@@ -117,10 +117,11 @@ export function Footer() {
 
 function FooterTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h4 style={{
+    // h2: sigue al h2 de Contacto sin saltar niveles; lineHeight conserva el alto del antiguo h4.
+    <h2 style={{
       fontSize: 13, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em",
-      color: "white", marginBottom: 18,
-    }}>{children}</h4>
+      lineHeight: 1.55, color: "white", marginBottom: 18,
+    }}>{children}</h2>
   );
 }
 
@@ -138,9 +139,9 @@ function FooterList({ items }: { items: [string, string][] }) {
   );
 }
 
-function SocialBtn({ href, Icon }: { href: string; Icon: React.ComponentType<React.SVGProps<SVGSVGElement>> }) {
+function SocialBtn({ href, Icon, label }: { href: string; Icon: React.ComponentType<React.SVGProps<SVGSVGElement>>; label: string }) {
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" style={{
+    <a href={href} target="_blank" rel="noopener noreferrer" aria-label={label} style={{
       width: 40, height: 40, borderRadius: 12,
       background: "rgba(255,255,255,0.08)",
       border: "1px solid rgba(255,255,255,0.10)",

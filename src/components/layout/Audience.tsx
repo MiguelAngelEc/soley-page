@@ -30,10 +30,9 @@ export function Audience() {
             isolation: "isolate",
           }}>
             {/* Capa de imagen — cubre TODO el article */}
-            <div style={{
+            <div className="audience-bg-home" style={{
               position: "absolute",
               inset: 0,
-              backgroundImage: `linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.75)), url('/Img-fondo/img-familia.webp')`,
               backgroundSize: "cover",
               backgroundPosition: "center 20%",
               backgroundRepeat: "no-repeat",
@@ -107,10 +106,9 @@ export function Audience() {
             isolation: "isolate",
           }}>
             {/* Capa de imagen — cubre TODO el article */}
-            <div style={{
+            <div className="audience-bg-pro" style={{
               position: "absolute",
               inset: 0,
-              backgroundImage: `linear-gradient(rgba(11,23,54,0.85), rgba(11,23,54,0.75)), url('/Img-fondo/img-trabajador.webp')`,
               backgroundSize: "cover",
               backgroundPosition: "center 20%",
               backgroundRepeat: "no-repeat",
@@ -186,6 +184,13 @@ export function Audience() {
         .audience-card { transition: transform .25s; }
         .audience-card:hover { transform: translateY(-4px); }
         @media (max-width: 880px) { .audience-grid { grid-template-columns: 1fr !important; } }
+        .audience-bg-home { background-image: linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.75)), url('/Img-fondo/img-familia.webp'); }
+        .audience-bg-pro { background-image: linear-gradient(rgba(11,23,54,0.85), rgba(11,23,54,0.75)), url('/Img-fondo/img-trabajador.webp'); }
+        /* En telefono la tarjeta mide ~400px: basta la version de 640px. */
+        @media (max-width: 640px) {
+          .audience-bg-home { background-image: linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.75)), url('/Img-fondo/img-familia-mobile.webp'); }
+          .audience-bg-pro { background-image: linear-gradient(rgba(11,23,54,0.85), rgba(11,23,54,0.75)), url('/Img-fondo/img-trabajador-mobile.webp'); }
+        }
       `}</style>
     </section>
   );

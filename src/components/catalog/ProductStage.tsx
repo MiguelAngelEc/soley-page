@@ -19,15 +19,13 @@ interface StageView {
   index: number;
   /** Presentacion que esta saliendo (-1 al abrir). */
   prev: number;
-  /** Lado hacia el que se avanza: 1 derecha, -1 izquierda, 0 al abrir. */
-  dir: number;
   /** Cambia en cada salto para reiniciar las animaciones de entrada y salida. */
   swap: number;
 }
 
-function move(view: StageView, index: number, dir: number): StageView {
+function move(view: StageView, index: number): StageView {
   if (index === view.index) return view;
-  return { index, prev: view.index, dir, swap: view.swap + 1 };
+  return { index, prev: view.index, swap: view.swap + 1 };
 }
 
 /**
@@ -36,7 +34,7 @@ function move(view: StageView, index: number, dir: number): StageView {
  * con flechas o teclado, como variantes del mismo personaje.
  */
 export function ProductStage({ product, initialPresentation, onClose }: ProductStageProps) {
-  const [view, setView] = useState<StageView>({ index: initialPresentation, prev: -1, dir: 0, swap: 0 });
+  const [view, setView] = useState<StageView>({ index: initialPresentation, prev: -1, swap: 0 });
   const [quoteOpen, setQuoteOpen] = useState(false);
   const titleId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -48,15 +46,15 @@ export function ProductStage({ product, initialPresentation, onClose }: ProductS
 
   useDialogA11y({ isOpen: true, onClose, containerRef });
 
-  const go = (step: number) => setView((v) => move(v, (v.index + step + total) % total, step));
+  const go = (step: number) => setView((v) => move(v, (v.index + step + total) % total));
 
   // Flechas del teclado. Se ignoran mientras el formulario de cotizacion esta
   // abierto para no cambiar de presentacion al moverse dentro de un campo.
   useEffect(() => {
     if (quoteOpen) return;
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "ArrowRight") setView((v) => move(v, (v.index + 1) % total, 1));
-      else if (e.key === "ArrowLeft") setView((v) => move(v, (v.index - 1 + total) % total, -1));
+      if (e.key === "ArrowRight") setView((v) => move(v, (v.index + 1) % total));
+      else if (e.key === "ArrowLeft") setView((v) => move(v, (v.index - 1 + total) % total));
     }
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
@@ -110,10 +108,12 @@ export function ProductStage({ product, initialPresentation, onClose }: ProductS
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img className="stage-pedestal" src="/efectos/pedestal.webp" alt="" aria-hidden="true" />
           <div className="stage-shadow" aria-hidden="true" />
-          {/* Las 3 presentaciones quedan montadas (y precargadas): la actual
-              entra, la anterior sale hacia el lado contrario y el resto espera
+          {/* Destello del pedestal en cada cambio (se vuelve a montar con swap). */}
+          {view.swap > 0 && <div key={view.swap} className="stage-flash" aria-hidden="true" />}
+          {/* Las 3 presentaciones quedan montadas (y precargadas): la anterior
+              se hunde en el pedestal, la actual emerge de el y el resto espera
               oculta, asi el cambio no parpadea esperando la imagen. */}
-          <div className="stage-product" style={{ "--dir": view.dir } as React.CSSProperties}>
+          <div className="stage-product">
             {presentations.map((p, i) => {
               const state = i === view.index ? "in" : i === view.prev ? "out" : "idle";
               return (
@@ -121,7 +121,6 @@ export function ProductStage({ product, initialPresentation, onClose }: ProductS
                   key={state === "idle" ? p.size : `${p.size}-${view.swap}`}
                   className="stage-layer"
                   data-state={state}
-                  data-enter={view.dir === 0 ? "open" : undefined}
                   aria-hidden={state !== "in"}
                 >
                   <Image
@@ -148,7 +147,7 @@ export function ProductStage({ product, initialPresentation, onClose }: ProductS
             key={p.size}
             type="button"
             className="stage-roster-item"
-            onClick={() => setView((v) => move(v, i, Math.sign(i - v.index)))}
+            onClick={() => setView((v) => move(v, i))}
             aria-label={p.size}
             aria-pressed={i === presentation}
           >
@@ -282,27 +281,40 @@ export function ProductStage({ product, initialPresentation, onClose }: ProductS
         }
         .stage-layer { position: absolute; inset: 0; }
         .stage-layer[data-state="idle"] { visibility: hidden; }
+        /* Todo cambio ocurre en el pedestal: la anterior se hunde en el y la
+           nueva emerge desde su superficie (origen en la base del producto). */
+        .stage-layer { transform-origin: 50% 90%; }
         .stage-layer[data-state="in"] {
-          animation: stage-in 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-        }
-        .stage-layer[data-state="in"][data-enter="open"] {
-          animation: stage-open 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+          animation: stage-rise 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
         }
         .stage-layer[data-state="out"] {
-          animation: stage-out 0.3s cubic-bezier(0.4, 0, 1, 1) both;
+          animation: stage-sink 0.28s cubic-bezier(0.4, 0, 1, 1) both;
         }
-        /* Entra desde el lado hacia el que se avanza y sale por el opuesto. */
-        @keyframes stage-in {
-          from { opacity: 0; transform: translateX(calc(var(--dir) * 45%)) scale(0.85) rotate(calc(var(--dir) * 6deg)); }
-          to { opacity: 1; transform: none; }
+        /* Al cambiar, la nueva espera a que la anterior se hunda. */
+        .stage-layer[data-state="out"] ~ .stage-layer[data-state="in"],
+        .stage-layer[data-state="in"]:has(~ .stage-layer[data-state="out"]) {
+          animation-delay: 0.16s;
         }
-        @keyframes stage-out {
-          from { opacity: 1; transform: none; }
-          to { opacity: 0; transform: translateX(calc(var(--dir) * -45%)) scale(0.85) rotate(calc(var(--dir) * -6deg)); }
+        @keyframes stage-rise {
+          from { opacity: 0; transform: translateY(40px) scale(0.6, 0.3); filter: brightness(2.2); }
+          55% { filter: brightness(1.3); }
+          to { opacity: 1; transform: none; filter: none; }
         }
-        @keyframes stage-open {
-          from { opacity: 0; transform: translateY(40px) scale(0.9); }
-          to { opacity: 1; transform: none; }
+        @keyframes stage-sink {
+          from { opacity: 1; transform: none; filter: none; }
+          to { opacity: 0; transform: translateY(40px) scale(0.6, 0.3); filter: brightness(2.2); }
+        }
+        /* Destello sobre la superficie del pedestal. */
+        .stage-flash {
+          position: absolute; left: 22%; width: 56%; top: 70%; height: 14%; border-radius: 50%;
+          background: radial-gradient(ellipse, rgba(255,255,255,0.9) 0%, var(--accent) 35%, transparent 70%);
+          filter: blur(8px); pointer-events: none;
+          animation: stage-flash 0.7s ease-out both;
+        }
+        @keyframes stage-flash {
+          0% { opacity: 0; transform: scaleX(0.4); }
+          30% { opacity: 0.9; transform: scaleX(1.1); }
+          100% { opacity: 0; transform: scaleX(1.25); }
         }
         .stage-current { animation: stage-fade 0.35s ease-out both; }
         @keyframes stage-fade {
@@ -423,7 +435,8 @@ export function ProductStage({ product, initialPresentation, onClose }: ProductS
           .stage-product, .stage-shadow { animation: none; }
           .stage-layer[data-state] { animation: stage-crossfade 0.15s linear both; }
           .stage-layer[data-state="out"] { animation-direction: reverse; }
-          .stage-current { animation: none; }
+          .stage-current, .stage-flash { animation: none; }
+          .stage-flash { display: none; }
           @keyframes stage-crossfade { from { opacity: 0; } to { opacity: 1; } }
         }
         /* Movil horizontal: poca altura, producto y datos lado a lado. */

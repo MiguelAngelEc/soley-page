@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useId, useRef } from "react";
+import { isLightColor } from "@/data/products";
 import type { Product } from "@/data/products";
 import { ArrowIcon, CloseIcon, WhatsAppIcon } from "@/components/shared/Icons";
 import { WhatsAppModal } from "@/components/shared/WhatsAppModal";
@@ -118,7 +119,11 @@ export function ProductStage({ product, initialPresentation, morph, onClose }: P
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
-      style={{ "--accent": product.color } as React.CSSProperties}
+      style={{
+        "--accent": product.color,
+        // Texto sobre el color del producto: oscuro si el color es claro (Gel).
+        "--accent-ink": isLightColor(product.color) ? "var(--ink)" : "white",
+      } as React.CSSProperties}
     >
       <div className="stage-top">
         <span className="stage-pill">
@@ -444,7 +449,7 @@ export function ProductStage({ product, initialPresentation, morph, onClose }: P
         .stage-current span {
           padding: 4px 10px; border-radius: 999px;
           font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
-          background: var(--accent); color: white;
+          background: var(--accent); color: var(--accent-ink);
         }
         .stage-desc { font-size: 15.5px; line-height: 1.6; color: rgba(255,255,255,0.8); }
         .stage-label {

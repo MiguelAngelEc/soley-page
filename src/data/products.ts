@@ -51,7 +51,7 @@ export const products: Product[] = [
       { size: "Caneca 20 L", type: "mayoreo", presentationSize: "caneca", volume: "20 L", price: 20, image: "/productos/Gel Antibacterial  Caneca.webp" },
     ],
     featured: true,
-    color: "#16A34A",
+    color: "#FFFFFF",
   },
   {
     id: "alcohol-antiseptico",
@@ -95,7 +95,7 @@ export const products: Product[] = [
       { size: "Caneca 20 L", type: "mayoreo", presentationSize: "caneca", volume: "20 L", price: 20, image: "/productos/Desinfectante Caneca.png" },
     ],
     featured: true,
-    color: "#7C3AED",
+    color: "#16A34A",
   },
   {
     id: "jabon-liquido",
@@ -139,7 +139,7 @@ export const products: Product[] = [
       { size: "Caneca 20 L", type: "mayoreo", presentationSize: "caneca", volume: "20 L", price: 20, image: "/productos/Cloro Caneca.png" },
     ],
     featured: true,
-    color: "#06B6D4",
+    color: "#E11D2E",
   },
   {
     id: "detergente-liquido",
@@ -164,6 +164,13 @@ export const products: Product[] = [
     color: "#3B82F6",
   },
 ];
+
+/** true si el color es tan claro que no se lee sobre blanco (ej. el Gel). */
+export function isLightColor(hex: string): boolean {
+  const n = parseInt(hex.slice(1), 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 200;
+}
 
 export const categories: { id: ProductCategory | "all"; label: string }[] = [
   { id: "all", label: "Todos" },

@@ -253,7 +253,7 @@ export function Catalog() {
             }}
           >
             {filtered.map((p) => (
-              <ProductCard key={p.id} product={p} onOpen={(presentation, image) => openStage(p, presentation, image)} />
+              <ProductCard key={p.id} product={p} paused={stage !== null} onOpen={(presentation, image) => openStage(p, presentation, image)} />
             ))}
           </div>
         </div>

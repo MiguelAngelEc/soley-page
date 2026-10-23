@@ -1,14 +1,20 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { flushSync, preload } from "react-dom";
-import { products, categories } from "@/data/products";
+import { products, categories, presentationIndex } from "@/data/products";
 import type { Product, ProductCategory, PresentationType } from "@/data/products";
 import { ProductCard } from "./ProductCard";
 import { ProductStage } from "./ProductStage";
 import { useReveal } from "@/lib/hooks";
 import { prefersReducedMotion, useReducedMotionPreference } from "@/lib/a11y";
 import { ArrowIcon, WhatsAppIcon, DocumentIcon, DownloadIcon } from "@/components/shared/Icons";
+
+// El reloj solo recorre los tamanos que tienen todos los productos (1 L, 4 L,
+// 20 L); los extras, como el Galon 5 L del detergente, se eligen a mano.
+const AUTO_VOLUMES = products[0].presentations
+  .map((p) => p.volume)
+  .filter((v) => products.every((p) => p.presentations.some((x) => x.volume === v)));
 
 export function Catalog() {
   const [cat, setCat] = useState<ProductCategory | "all">("all");
@@ -19,24 +25,27 @@ export function Catalog() {
     card: HTMLElement | null;
   } | null>(null);
 
-  // Presentacion visible en TODAS las tarjetas (0 = 1 L, 1 = 4 L, 2 = 20 L) y
-  // en el escenario: una sola fuente de verdad, asi nunca se mezclan tamanos y
-  // lo que se elige en el escenario es lo que se ve al volver a la tarjeta.
-  const [presentation, setPresentation] = useState(0);
+  // Tamano visible en TODAS las tarjetas y en el escenario, por volumen
+  // ("1 L", "4 L"...): una sola fuente de verdad, asi nunca se mezclan tamanos
+  // y lo que se elige en el escenario es lo que se ve al volver a la tarjeta.
+  const [volume, setVolume] = useState(AUTO_VOLUMES[0]);
   // El visitante esta sobre una tarjeta (hover o foco con teclado).
   const [interacting, setInteracting] = useState(false);
   const reducedMotion = useReducedMotionPreference();
   const sliderPaused = stage !== null || interacting || reducedMotion;
-  const presentationCount = products[0].presentations.length;
 
   // Un solo reloj para todas las tarjetas. Se reprograma en cada cambio, asi
   // que si el visitante elige un tamano a mano, el siguiente avance espera
-  // otros 4 s completos.
+  // otros 4 s completos. Desde un extra (5 L) vuelve al primero.
   useEffect(() => {
     if (sliderPaused) return;
-    const timer = setTimeout(() => setPresentation((p) => (p + 1) % presentationCount), 4000);
+    const timer = setTimeout(() => setVolume((v) => AUTO_VOLUMES[(AUTO_VOLUMES.indexOf(v) + 1) % AUTO_VOLUMES.length]), 4000);
     return () => clearTimeout(timer);
-  }, [presentation, sliderPaused, presentationCount]);
+  }, [volume, sliderPaused]);
+  const selectStageVolume = useCallback(
+    (index: number) => { if (stage) setVolume(stage.product.presentations[index].volume); },
+    [stage],
+  );
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [gridHeight, setGridHeight] = useState<number | "auto">("auto");
   const gridRef = useRef<HTMLDivElement | null>(null);
@@ -280,8 +289,8 @@ export function Catalog() {
               <ProductCard
                 key={p.id}
                 product={p}
-                presentation={presentation}
-                onSelectPresentation={setPresentation}
+                presentation={presentationIndex(p, volume)}
+                onSelectPresentation={(i) => setVolume(p.presentations[i].volume)}
                 onInteract={setInteracting}
                 onOpen={(card) => openStage(p, card)}
               />
@@ -317,8 +326,8 @@ export function Catalog() {
       {stage && (
         <ProductStage
           product={stage.product}
-          initialPresentation={presentation}
-          onPresentationChange={setPresentation}
+          initialPresentation={presentationIndex(stage.product, volume)}
+          onPresentationChange={selectStageVolume}
           morph={stage.card !== null}
           onClose={closeStage}
         />

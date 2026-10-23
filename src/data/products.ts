@@ -38,10 +38,10 @@ export const products: Product[] = [
     category: "sanitization",
     categoryLabel: "Sanitización",
     description:
-      "Gel antibacterial con base alcohólica al 70%. Elimina el 99.9% de bacterias y virus en segundos sin resecar la piel.",
+      "Gel antibacterial de uso cosmético con base alcohólica al 69.9%. Elimina el 99.9% de bacterias y virus en segundos sin resecar la piel.",
     uses: ["Hospitales y clínicas", "Hoteles y restaurantes", "Oficinas y comercio", "Hogar"],
     specs: [
-      { k: "Alcohol", v: "70%" },
+      { k: "Alcohol", v: "69.9%" },
       { k: "Eficacia", v: "99.9% bacterias" },
       { k: "Aroma", v: "Neutro / floral" },
     ],
@@ -60,12 +60,12 @@ export const products: Product[] = [
     category: "disinfection",
     categoryLabel: "Desinfección",
     description:
-      "Alcohol antiséptico de uso externo. Ideal para limpieza de superficies, instrumentos y heridas menores.",
+      "Alcohol antiséptico de uso cosmético, a base de alcohol etílico al 69.9%. Ideal para limpieza de superficies, instrumentos y heridas menores.",
     uses: ["Centros médicos", "Belleza y estética", "Industria alimentaria", "Hogar"],
     specs: [
-      { k: "Concentración", v: "96°" },
+      { k: "Concentración", v: "69.9%" },
       { k: "Tipo", v: "Etílico" },
-      { k: "Uso", v: "Externo" },
+      { k: "Uso", v: "Cosmético" },
     ],
     presentations: [
       { size: "Botella 1 L", type: "menudeo", presentationSize: "litro", volume: "1 L", price: 1, image: "/productos/Alcohol Antiséptico Litro.png" },
@@ -158,6 +158,7 @@ export const products: Product[] = [
     presentations: [
       { size: "Botella 1 L", type: "menudeo", presentationSize: "litro", volume: "1 L", price: 1, image: "/productos/Detergente Litro.webp" },
       { size: "Galón 4 L", type: "menudeo", presentationSize: "galon", volume: "4 L", price: 6, image: "/productos/Detergente Galón.webp" },
+      { size: "Galón 5 L", type: "menudeo", presentationSize: "galon", volume: "5 L", price: 5, image: "/productos/Detergente Galón 5L.webp" },
       { size: "Caneca 20 L", type: "mayoreo", presentationSize: "caneca", volume: "20 L", price: 20, image: "/productos/Detergente Caneca.png" },
     ],
     featured: true,
@@ -170,6 +171,15 @@ export function isLightColor(hex: string): boolean {
   const n = parseInt(hex.slice(1), 16);
   const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
   return 0.2126 * r + 0.7152 * g + 0.0722 * b > 200;
+}
+
+/**
+ * Posicion del tamano `volume` dentro del producto. Si no lo tiene (el Galon
+ * 5 L elegido en el detergente), muestra su ultimo tamano.
+ */
+export function presentationIndex(product: Product, volume: string): number {
+  const i = product.presentations.findIndex((p) => p.volume === volume);
+  return i >= 0 ? i : product.presentations.length - 1;
 }
 
 export const categories: { id: ProductCategory | "all"; label: string }[] = [

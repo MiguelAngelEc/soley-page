@@ -120,12 +120,12 @@ export function ProductCard({ product, presentation, onSelectPresentation, onInt
           ))}
         </button>
 
-        {/* Indicadores de presentación */}
+        {/* Indicadores de presentación: a la derecha para no chocar con la
+            etiqueta de tamaño (el padding de 8px deja el punto a 16px del borde). */}
         <div style={{
           position: "absolute",
           bottom: 16,
-          left: "50%",
-          transform: "translateX(-50%)",
+          right: 8,
           display: "flex",
           gap: 6,
           zIndex: 2,

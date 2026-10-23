@@ -42,20 +42,54 @@ const POP_SOUND = "/efectos/burbuja-pop.mp3";
 // decodifica una sola vez.
 let popAudio: { ctx: AudioContext; buffer: Promise<AudioBuffer | null> } | null = null;
 
+// Safari < 14.1 / iOS < 14.5 solo exponen webkitAudioContext y su
+// decodeAudioData no devuelve promesa (forma callback). Cubrimos ambos.
+function decodeAudio(ctx: AudioContext, data: ArrayBuffer): Promise<AudioBuffer> {
+  return new Promise((resolve, reject) => {
+    const p = ctx.decodeAudioData(data, resolve, reject);
+    if (p && typeof p.then === "function") p.then(resolve, reject);
+  });
+}
+
+// En pantallas tactiles la activacion de usuario llega en pointerup/touchend,
+// no en el pointerdown que revienta la burbuja. Si el navegador no deja
+// reanudar ahi (Safari/iOS), se reintenta una vez en el pointerup del mismo
+// toque. Si ninguno lo logra, ese pop queda mudo (nunca suena tarde).
+function resumeAudio(ctx: AudioContext): Promise<void> {
+  if (ctx.state === "running") return Promise.resolve();
+  return new Promise((resolve) => {
+    const events = ["pointerup", "touchend"] as const;
+    const stop = () => events.forEach((e) => window.removeEventListener(e, retry, true));
+    const retry = () => {
+      stop();
+      ctx.resume().then(resolve, () => {});
+    };
+    events.forEach((e) => window.addEventListener(e, retry, true));
+    ctx.resume().then(() => {
+      stop();
+      resolve();
+    }, () => {});
+  });
+}
+
 async function playPop(size: number) {
   try {
     if (!popAudio) {
-      const ctx = new AudioContext();
+      const Ctor =
+        window.AudioContext ??
+        (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!Ctor) return;
+      const ctx = new Ctor();
       popAudio = {
         ctx,
         buffer: fetch(POP_SOUND)
           .then((r) => r.arrayBuffer())
-          .then((data) => ctx.decodeAudioData(data))
+          .then((data) => decodeAudio(ctx, data))
           .catch(() => null),
       };
     }
     const { ctx, buffer } = popAudio;
-    await ctx.resume();
+    await resumeAudio(ctx);
     const buf = await buffer;
     if (!buf) return;
     const source = ctx.createBufferSource();

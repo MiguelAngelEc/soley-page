@@ -319,9 +319,12 @@ export function Hero() {
         .hero-caneca {
           position: absolute; inset: 0 0 4%; z-index: 1;
         }
+        /* La sombra va en la imagen y no en el contenedor animado: asi se
+           rasteriza una vez. En el contenedor, equipos sin GPU la recalculaban
+           en cada frame (33 -> 61 fps medidos con render por software). */
+        .hero-caneca-tilt img { filter: drop-shadow(0 30px 45px rgba(11,23,54,0.22)); }
         .hero-caneca-tilt {
           position: absolute; inset: 0;
-          filter: drop-shadow(0 30px 45px rgba(11,23,54,0.22));
           transform: perspective(1000px)
             translate3d(calc(var(--mx, 0) * 12px), calc(var(--my, 0) * 8px), 0)
             rotateY(calc(var(--mx, 0) * 5deg)) rotateX(calc(var(--my, 0) * -3deg))

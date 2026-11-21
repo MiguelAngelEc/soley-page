@@ -12,6 +12,8 @@ interface WhatsAppModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedProduct?: Product | null;
+  /** texto libre para "Producto de interes" (p. ej. un combo); tiene prioridad sobre selectedProduct */
+  productLabel?: string;
   initialType?: "hogar" | "mayoreo";
 }
 
@@ -51,12 +53,12 @@ const queryOptions = [
   },
 ];
 
-export function WhatsAppModal({ isOpen, onClose, selectedProduct, initialType }: WhatsAppModalProps) {
+export function WhatsAppModal({ isOpen, onClose, selectedProduct, productLabel, initialType }: WhatsAppModalProps) {
   const initialForm = (): FormData => ({
     clientType: initialType || "hogar",
     name: "",
     phone: "",
-    product: selectedProduct?.name || "",
+    product: productLabel || selectedProduct?.name || "",
   });
 
   const [step, setStep] = useState(1);

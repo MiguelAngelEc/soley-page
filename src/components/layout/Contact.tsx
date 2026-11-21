@@ -216,7 +216,7 @@ export function Contact() {
                 </div>
               </div>
               <a
-                href="/Catalogo/CatálogoSOLEY.pdf"
+                href="/Catalogo/catalogo-soley.pdf"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn btn-sm btn-outline-blue"

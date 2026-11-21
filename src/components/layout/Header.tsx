@@ -55,7 +55,7 @@ export function Header() {
         </nav>
 
         <div className="desktop-cta" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <a href="/Catalogo/CatálogoSOLEY.pdf" target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-outline-blue">
+          <a href="/Catalogo/catalogo-soley.pdf" target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-outline-blue">
             <DocumentIcon width={16} height={16} />
             Catálogo
           </a>
@@ -91,7 +91,7 @@ export function Header() {
             ))}
           </nav>
           <div style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 12 }}>
-            <a href="/Catalogo/CatálogoSOLEY.pdf" target="_blank" rel="noopener noreferrer" className="btn btn-outline-blue">
+            <a href="/Catalogo/catalogo-soley.pdf" target="_blank" rel="noopener noreferrer" className="btn btn-outline-blue">
               <DocumentIcon width={18} height={18} />
               Descargar catálogo PDF
             </a>

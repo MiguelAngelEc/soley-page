@@ -10,6 +10,7 @@ import { Contact } from "@/components/layout/Contact";
 import { Footer } from "@/components/layout/Footer";
 import { WhatsAppFloat } from "@/components/layout/WhatsAppFloat";
 import { PromoAdModal } from "@/components/shared/PromoAdModal";
+import { PromoPostcards } from "@/components/shared/PromoPostcards";
 
 export default function Home() {
   return (
@@ -28,6 +29,7 @@ export default function Home() {
       <Footer />
       <WhatsAppFloat />
       <PromoAdModal />
+      <PromoPostcards />
     </>
   );
 }
